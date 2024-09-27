@@ -1,0 +1,35 @@
+{
+  "name": "vidmix",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "scss": "sass --watch styles.scss:styles.css"
+  },
+  "keywords": [],
+  "author": "BOP",
+  "license": "ISC",
+  "description": "Combined Electron app with Vidsencoder and YTDownloader",
+  "dependencies": {
+    "@ffprobe-installer/ffprobe": "^2.1.2",
+    "@fortawesome/fontawesome-free": "^6.1.2",
+    "animate.css": "^4.1.1",
+    "discord-rpc": "^4.0.1",
+    "ffmpeg-static": "^5.2.0",
+    "yt-dlp-wrap": "^2.3.12"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.4.0",
+    "@electron-forge/maker-deb": "^7.4.0",
+    "@electron-forge/maker-rpm": "^7.4.0",
+    "@electron-forge/maker-squirrel": "^7.4.0",
+    "@electron-forge/maker-zip": "^7.4.0",
+    "electron": "^31.0.1",
+    "node-sass": "^9.0.0"
+  },
+  "config": {}
+}

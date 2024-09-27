@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Combined Electron App</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="node_modules/animate.css/animate.min.css">
+  <script defer src="renderer.js"></script>
+</head>
+<body>
+  <div class="tabs">
+    <button class="tab" onclick="openApp('vidsencoder')">Vidsencoder</button>
+    <button class="tab" onclick="openApp('ytdownloader')">YTDownloader</button>
+    <button class="tab" onclick="openApp('extract')">Extract</button>
+  </div>
+  <div id="app-container"></div>
+</body>
+</html>
