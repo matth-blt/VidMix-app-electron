@@ -46,4 +46,4 @@ Contributions are welcome! Please open an issue to discuss the changes you want 
 
 ## Licence
 
-Cette application est sous licence ISC.
+ISC.
