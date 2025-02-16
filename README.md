@@ -10,6 +10,7 @@ VidMix is ​​an Electron application that uses GPT-4 to provide advanced vide
 To install the application, download the installer from the releases page and launch it. The application will be automatically installed in the following directory: `C:\Users\<User name>\AppData\Local\VidMix`.
 
 ## Usage
+
 #### Vidsencoder:
 1. Import your video files by clicking the `Import` button.
 2. Select your encoder.
@@ -27,13 +28,16 @@ To install the application, download the installer from the releases page and la
 
 ## Dependencies
 
-- `Node.js`
-- `Electron`
 - `yt-dlp`
 
 ## Dev
 
-Pour développer et tester l'application localement :
+### Dependencies
+
+- `Node.js`
+- `Electron`
+
+To develop and test the application locally:
 
 1. Clone the repo `git clone https://github.com/matth-blt/VidMix-app-electron.git`
 2. Install requierement `npm install`
