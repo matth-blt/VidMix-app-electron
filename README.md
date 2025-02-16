@@ -7,7 +7,7 @@ VidMix is ​​an Electron application that uses GPT-4 to provide advanced vide
 
 ## Installation
 
-To install the application, download the installer from the releases page and launch it. The application will be automatically installed in the following directory: `C:\Users\<User name>\AppData\Local\VidMix`.
+To install the application, download the installer from the releases page and launch it. The application will be automatically installed in the following directory: `C:\Users\<User name>\AppData\Local\vidmix`.
 
 ## Usage
 
