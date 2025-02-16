@@ -10,11 +10,20 @@ VidMix is ​​an Electron application that uses GPT-4 to provide advanced vide
 To install the application, download the installer from the releases page and launch it. The application will be automatically installed in the following directory: `C:\Users\<User name>\AppData\Local\VidMix`.
 
 ## Usage
-### Vidsencoder
-1. Open the VidMix app from the Start menu or desktop shortcut.
-2. Import your video files by clicking the "Import" button.
-3. Use the mixing tools to edit your videos.
-4. Save and export your creations.
+### Vidsencoder:
+1. Import your video files by clicking the "Import" button.
+2. Select your encoder.
+3. Save and export your file.
+   
+### YTDownloader:
+1. Paste a `YouTube` link and clicking the "fetch formats" button.
+2. Select the numbers of the video only and audio only format you want.
+3. Save and export your file.
+   
+### Extract:
+1. Import your video files by clicking the "Import" button.
+2. Select your format.
+3. Save and extract the frames
 
 ## Dependencies
 
