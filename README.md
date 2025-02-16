@@ -27,8 +27,9 @@ To install the application, download the installer from the releases page and la
 
 ## Dependencies
 
-- Node.js
-- Electron
+- `Node.js`
+- `Electron`
+- `yt-dlp`
 
 ## Dev
 
