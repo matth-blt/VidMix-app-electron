@@ -1,5 +1,5 @@
 body {
-  overflow: hidden; /* Désactive le défilement pour tout le corps de la page */
+  overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background: #1c1c1c;
   color: white;
@@ -26,9 +26,9 @@ body {
 }
 
 #app-container {
-  overflow: hidden; /* Désactive le défilement pour le conteneur de l'application */
+  overflow: hidden;
   width: 100%;
-  height: calc(100vh - 40px); /* Ajustez en fonction de la hauteur des autres éléments */
+  height: calc(100vh - 40px);
 }
 
 #formatInfo {
@@ -45,11 +45,11 @@ body {
 
 
 .container {
-  width: 100%; /* Assurez-vous que le conteneur interne utilise 100% de la largeur disponible */
-  height: 100%; /* Utilise 100% de la hauteur disponible */
+  width: 100%;
+  height: 100%;
   text-align: center;
   padding: 10px;
-  box-sizing: border-box; /* Inclut le padding et la bordure dans les dimensions */
+  box-sizing: border-box;
 }
 
 .label-input-group {
