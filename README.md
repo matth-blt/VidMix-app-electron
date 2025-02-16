@@ -44,6 +44,6 @@ Contributions are welcome! Please open an issue to discuss the changes you want 
 
 (I did this with chat gpt without any real knowledge at the time so there are certainly many areas for improvement)
 
-## Licence
+## License
 
 ISC.
