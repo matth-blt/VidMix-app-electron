@@ -55,17 +55,6 @@ function initBinaryPath(name) {
     return systemPath;
   }
 
-  // 3. Fallback to ffmpeg-static (only for ffmpeg)
-  if (name === 'ffmpeg') {
-    try {
-      const staticPath = require('ffmpeg-static');
-      if (staticPath && fs.existsSync(staticPath)) {
-        console.log(`[VidMix] Using ffmpeg-static: ${staticPath}`);
-        return staticPath;
-      }
-    } catch (e) { }
-  }
-
   console.log(`[VidMix] ${name} not found`);
   return null;
 }
@@ -413,7 +402,7 @@ ipcMain.handle('open-dialog', async () => {
 
 ipcMain.handle('fetch-formats', (event, url) => {
   return new Promise((resolve, reject) => {
-    const ytDlp = spawn('yt-dlp', ['-F', url]);
+    const ytDlp = spawn(ytdlpPath, ['--no-playlist', '-F', url]);
 
     let output = '';
     let errorOutput = '';
@@ -442,28 +431,78 @@ ipcMain.handle('fetch-formats', (event, url) => {
 });
 
 ipcMain.handle('download', (event, args) => {
-  const { url, outputFolder, videoFormat, audioFormat } = args;
-  const ytDlp = spawn('yt-dlp', [
-    '-f', `${videoFormat}+${audioFormat}`,
-    '-o', `${outputFolder}/%(title)s.%(ext)s`,
-    '--merge-output-format', 'mkv',
-    url
-  ]);
+  const { url, outputFolder, videoFormat, audioFormat, videoEnabled, audioEnabled, autoMode } = args;
+
+  let ytdlpArgs;
+
+  if (autoMode) {
+    // Auto mode: Best quality with recommended options
+    ytdlpArgs = [
+      '--no-playlist',
+      '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best',
+      '--merge-output-format', 'mp4',
+      '--add-metadata',
+      '--embed-thumbnail',
+      '--embed-chapters',
+      '-o', `${outputFolder}/%(title)s.%(ext)s`,
+      url
+    ];
+  } else {
+    // Manual mode: Use format IDs
+    let formatStr;
+
+    if (videoEnabled && audioEnabled) {
+      formatStr = `${videoFormat}+${audioFormat}`;
+    } else if (videoEnabled) {
+      formatStr = videoFormat;
+    } else {
+      formatStr = audioFormat;
+    }
+
+    ytdlpArgs = [
+      '--no-playlist',
+      '-f', formatStr,
+      '-o', `${outputFolder}/%(title)s.%(ext)s`
+    ];
+
+    if (videoEnabled && audioEnabled) {
+      ytdlpArgs.push('--merge-output-format', 'mkv');
+    } else if (!videoEnabled) {
+      ytdlpArgs.push('-x', '--audio-format', 'mp3');
+    }
+
+    ytdlpArgs.push(url);
+  }
+
+  console.log('[VidMix] yt-dlp args:', ytdlpArgs.join(' '));
+
+  const ytDlp = spawn(ytdlpPath, ytdlpArgs);
+
+  let stderrData = '';
 
   ytDlp.stdout.on('data', data => {
-    event.sender.send('download-progress', data.toString());
+    const msg = data.toString();
+    console.log('[yt-dlp]', msg);
+    event.sender.send('download-progress', msg);
+    event.sender.send('terminal-message', msg.trim());
   });
 
   ytDlp.stderr.on('data', data => {
-    event.sender.send('download-error', data.toString());
+    const msg = data.toString();
+    console.log('[yt-dlp ERROR]', msg);
+    stderrData += msg;
+    event.sender.send('terminal-message', `[stderr] ${msg.trim()}`);
   });
 
   return new Promise((resolve, reject) => {
     ytDlp.on('close', code => {
       if (code === 0) {
+        event.sender.send('terminal-message', '✓ Download complete!');
         resolve('Download complete!');
       } else {
-        reject('Download failed!');
+        const errorMsg = stderrData || `Exit code: ${code}`;
+        event.sender.send('terminal-message', `✗ Download failed: ${errorMsg}`);
+        reject(`Download failed: ${errorMsg}`);
       }
     });
   });

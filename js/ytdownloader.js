@@ -26,19 +26,45 @@ export const template = `
       </div>
     </div>
     
+    <!-- Auto Mode Toggle -->
     <div class="form-group">
-      <label>Available Formats</label>
-      <textarea class="form-input" id="format-info" readonly placeholder="Click 'Fetch' to see available formats..."></textarea>
+      <div class="toggle-item auto-toggle">
+        <span class="toggle-label"><i class="fas fa-magic"></i> Auto Best Quality</span>
+        <div class="toggle-switch">
+          <input type="checkbox" id="toggle-auto" class="toggle-input" checked>
+          <label for="toggle-auto" class="toggle-track"></label>
+        </div>
+        <span class="auto-hint">Best video + audio, merged to MP4</span>
+      </div>
     </div>
     
-    <div class="options-grid" style="grid-template-columns: 1fr 1fr;">
+    <!-- Manual Options (hidden when auto is on) -->
+    <div id="manual-options" class="manual-options hidden">
       <div class="form-group">
-        <label>Video Format ID</label>
-        <input type="text" class="form-input" id="video-format" placeholder="e.g. 137">
+        <label>Download Options</label>
+        <div class="toggle-options">
+          <div class="toggle-item">
+            <span class="toggle-label"><i class="fas fa-video"></i> Video</span>
+            <div class="toggle-switch">
+              <input type="checkbox" id="toggle-video" class="toggle-input" checked>
+              <label for="toggle-video" class="toggle-track"></label>
+            </div>
+            <input type="text" class="form-input format-input" id="video-format" placeholder="Format ID (e.g. 137)">
+          </div>
+          <div class="toggle-item">
+            <span class="toggle-label"><i class="fas fa-music"></i> Audio</span>
+            <div class="toggle-switch">
+              <input type="checkbox" id="toggle-audio" class="toggle-input" checked>
+              <label for="toggle-audio" class="toggle-track"></label>
+            </div>
+            <input type="text" class="form-input format-input" id="audio-format" placeholder="Format ID (e.g. 140)">
+          </div>
+        </div>
       </div>
+      
       <div class="form-group">
-        <label>Audio Format ID</label>
-        <input type="text" class="form-input" id="audio-format" placeholder="e.g. 140">
+        <label>Available Formats</label>
+        <textarea class="form-input" id="format-info" readonly placeholder="Click 'Fetch' to see available formats..."></textarea>
       </div>
     </div>
     
@@ -48,58 +74,160 @@ export const template = `
   </div>
 `;
 
+let autoMode = true;
+let videoEnabled = true;
+let audioEnabled = true;
+
 export function init(log, addQueueItem) {
-    // Fetch formats
-    document.getElementById('fetch-formats')?.addEventListener('click', async () => {
-        const url = document.getElementById('yt-url').value;
-        if (!url) {
-            log('Error: Please enter a YouTube URL.', 'error');
-            return;
-        }
+  const manualOptions = document.getElementById('manual-options');
+  const fetchBtn = document.getElementById('fetch-formats');
 
-        log(`Fetching formats for: ${url}`, 'info');
-        document.getElementById('format-info').value = 'Fetching formats...';
+  // Auto mode toggle
+  document.getElementById('toggle-auto')?.addEventListener('change', (e) => {
+    autoMode = e.target.checked;
+    if (autoMode) {
+      manualOptions?.classList.add('hidden');
+      fetchBtn?.classList.add('hidden');
+    } else {
+      manualOptions?.classList.remove('hidden');
+      fetchBtn?.classList.remove('hidden');
+    }
+    log(autoMode ? 'Auto mode: Best quality will be downloaded' : 'Manual mode: Select format IDs', 'info');
+  });
 
-        try {
-            const result = await window.electron.fetchFormats(url);
-            document.getElementById('format-info').value = result;
-            log('Formats fetched successfully.', 'success');
-        } catch (error) {
-            log(`Error: ${error}`, 'error');
-            document.getElementById('format-info').value = `Error: ${error}`;
+  // Initial state
+  if (autoMode) {
+    manualOptions?.classList.add('hidden');
+    fetchBtn?.classList.add('hidden');
+  }
+
+  // Video toggle handler
+  document.getElementById('toggle-video')?.addEventListener('change', (e) => {
+    videoEnabled = e.target.checked;
+    document.getElementById('video-format').disabled = !videoEnabled;
+    document.getElementById('video-format').parentElement.classList.toggle('disabled', !videoEnabled);
+    updateToggleState();
+  });
+
+  // Audio toggle handler
+  document.getElementById('toggle-audio')?.addEventListener('change', (e) => {
+    audioEnabled = e.target.checked;
+    document.getElementById('audio-format').disabled = !audioEnabled;
+    document.getElementById('audio-format').parentElement.classList.toggle('disabled', !audioEnabled);
+    updateToggleState();
+  });
+
+  function updateToggleState() {
+    if (!videoEnabled && !audioEnabled) {
+      log('Warning: At least one of Video or Audio must be enabled.', 'warning');
+      document.getElementById('toggle-audio').checked = true;
+      audioEnabled = true;
+      document.getElementById('audio-format').disabled = false;
+    }
+  }
+
+  // Fetch formats (only visible in manual mode)
+  document.getElementById('fetch-formats')?.addEventListener('click', async () => {
+    const url = document.getElementById('yt-url').value;
+    if (!url) {
+      log('Error: Please enter a YouTube URL.', 'error');
+      return;
+    }
+
+    log(`Fetching formats for: ${url}`, 'info');
+    document.getElementById('format-info').value = 'Fetching formats...';
+
+    try {
+      const result = await window.electron.fetchFormats(url);
+      document.getElementById('format-info').value = result;
+      log('Formats fetched successfully.', 'success');
+    } catch (error) {
+      log(`Error: ${error}`, 'error');
+      document.getElementById('format-info').value = `Error: ${error}`;
+    }
+  });
+
+  // Browse output
+  document.getElementById('browse-output')?.addEventListener('click', async () => {
+    const result = await window.electron.openDialog();
+    if (!result.canceled) {
+      document.getElementById('output-folder').value = result.filePaths[0];
+    }
+  });
+
+  // Add to queue
+  document.getElementById('add-to-queue')?.addEventListener('click', () => {
+    const url = document.getElementById('yt-url').value;
+    const outputFolder = document.getElementById('output-folder').value;
+
+    if (!url || !outputFolder) {
+      log('Error: Please enter URL and select output folder.', 'error');
+      return;
+    }
+
+    // Auto mode - no format IDs needed
+    if (autoMode) {
+      const videoId = url.match(/(?:v=|youtu\.be\/)([^&\s]+)/)?.[1] || 'video';
+
+      addQueueItem({
+        type: 'download',
+        icon: 'fa-download',
+        title: `YouTube: ${videoId}`,
+        subtitle: 'Auto: Best quality → MP4',
+        status: 'Pending',
+        data: {
+          url,
+          outputFolder,
+          autoMode: true
         }
+      });
+
+      log('Added to queue: Best quality auto-download', 'success');
+      return;
+    }
+
+    // Manual mode - need format IDs
+    const videoFormat = videoEnabled ? document.getElementById('video-format').value : null;
+    const audioFormat = audioEnabled ? document.getElementById('audio-format').value : null;
+
+    if (videoEnabled && !videoFormat) {
+      log('Error: Please enter a video format ID.', 'error');
+      return;
+    }
+
+    if (audioEnabled && !audioFormat) {
+      log('Error: Please enter an audio format ID.', 'error');
+      return;
+    }
+
+    const videoId = url.match(/(?:v=|youtu\.be\/)([^&\s]+)/)?.[1] || 'video';
+
+    let subtitle = '';
+    if (videoEnabled && audioEnabled) {
+      subtitle = `${videoFormat}+${audioFormat}`;
+    } else if (videoEnabled) {
+      subtitle = `Video only (${videoFormat})`;
+    } else {
+      subtitle = `Audio only (${audioFormat})`;
+    }
+
+    addQueueItem({
+      type: 'download',
+      icon: videoEnabled ? 'fa-video' : 'fa-music',
+      title: `YouTube: ${videoId}`,
+      subtitle: subtitle,
+      status: 'Pending',
+      data: {
+        url,
+        outputFolder,
+        videoFormat,
+        audioFormat,
+        videoEnabled,
+        audioEnabled,
+        autoMode: false
+      }
     });
 
-    // Browse output
-    document.getElementById('browse-output')?.addEventListener('click', async () => {
-        const result = await window.electron.openDialog();
-        if (!result.canceled) {
-            document.getElementById('output-folder').value = result.filePaths[0];
-        }
-    });
-
-    // Add to queue
-    document.getElementById('add-to-queue')?.addEventListener('click', () => {
-        const url = document.getElementById('yt-url').value;
-        const outputFolder = document.getElementById('output-folder').value;
-        const videoFormat = document.getElementById('video-format').value;
-        const audioFormat = document.getElementById('audio-format').value;
-
-        if (!url || !outputFolder || !videoFormat || !audioFormat) {
-            log('Error: Please fill all required fields.', 'error');
-            return;
-        }
-
-        // Extract video ID for title
-        const videoId = url.match(/(?:v=|youtu\.be\/)([^&\s]+)/)?.[1] || 'video';
-
-        addQueueItem({
-            type: 'download',
-            icon: 'fa-download',
-            title: `YouTube: ${videoId}`,
-            subtitle: `${videoFormat}+${audioFormat}`,
-            status: 'Pending',
-            data: { url, outputFolder, videoFormat, audioFormat }
-        });
-    });
+    log(`Added to queue: ${subtitle}`, 'success');
+  });
 }

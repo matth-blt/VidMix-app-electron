@@ -14,11 +14,9 @@
   "license": "ISC",
   "description": "Combined Electron app with Vidsencoder and YTDownloader",
   "dependencies": {
-    "@ffprobe-installer/ffprobe": "^2.1.2",
     "@fortawesome/fontawesome-free": "^6.7.2",
     "animate.css": "^4.1.1",
-    "extract-zip": "^2.0.1",
-    "ffmpeg-static": "^5.3.0"
+    "extract-zip": "^2.0.1"
   },
   "devDependencies": {
     "@electron-forge/cli": "^7.6.0",
