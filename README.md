@@ -1,54 +1,147 @@
-![image](https://github.com/user-attachments/assets/db444318-d92c-408d-8e99-efd2a3f07996)
+![VidMix Banner](https://github.com/user-attachments/assets/db444318-d92c-408d-8e99-efd2a3f07996)
 
+# VidMix
 
-# VidMix App
+**A modern Electron application for video encoding, YouTube downloading, and frame extraction.**
 
-VidMix is ​​an Electron application that uses GPT-4 to provide advanced video mixing features.
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+[![Electron](https://img.shields.io/badge/Electron-33.x-47848F?logo=electron)](https://www.electronjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js)](https://nodejs.org/)
 
-## Installation
+## ✨ Features
 
-To install the application, download the installer from the releases page and launch it. The application will be automatically installed in the following directory: `C:\Users\<User name>\AppData\Local\vidmix`.
+### 🎬 Vidsencoder
+Encode and convert video files with customizable options:
+- Multiple encoder support (H.264, H.265/HEVC, VP9, AV1)
+- Quality and bitrate control
+- Resolution presets
+- Real-time encoding progress
 
-## Usage
+### 📥 YTDownloader
+Download videos from YouTube with advanced options:
+- Fetch available formats (video/audio)
+- **Auto Best Quality** mode - downloads best video + audio merged
+- Separate video/audio download toggles
+- Embedded metadata, thumbnails, and chapters
 
-#### Vidsencoder:
-1. Import your video files by clicking the `Import` button.
-2. Select your encoder.
-3. Save and export your file.
-   
-#### YTDownloader:
-1. Paste a `YouTube` link and clicking the `fetch formats` button.
-2. Select the numbers of the video only and audio only format you want.
-3. Save and export your file.
-   
-#### Extract:
-1. Import your video files by clicking the `Import` button.
-2. Select your format.
-3. Save and extract the frames
+### 🖼️ Frame Extractor
+Extract frames from videos:
+- Multiple output formats (PNG, JPG, BMP, TIFF)
+- Custom frame rate selection
+- Optional output folder creation
 
-## Dependencies
+### ℹ️ Media Info
+View detailed video metadata:
+- Duration, resolution, codecs
+- FPS, bitrate, file size
+- Pixel format information
 
-- `yt-dlp`
+### ⚡ First-Run Setup Wizard
+Automatic binary detection and installation:
+- Detects system-installed FFmpeg, FFprobe, and yt-dlp
+- One-click download for missing binaries
+- Animated setup wizard with progress tracking
 
-## Dev
+## 📦 Installation
 
-### Dependencies
+### From Releases
+Download the installer from the [Releases](https://github.com/matth-blt/VidMix-app-electron/releases) page:
+- **macOS**: `.dmg` installer
+- **Windows**: `.exe` installer
+- **Linux**: `.deb` or `.rpm` package
 
-- `Node.js`
-- `Electron`
+### Requirements
+The application requires the following binaries (automatically downloaded if missing):
+- **FFmpeg** - Video encoding/decoding
+- **FFprobe** - Media information extraction
+- **yt-dlp** - YouTube downloading
 
-To develop and test the application locally:
+## 🚀 Usage
 
-1. Clone the repo `git clone https://github.com/matth-blt/VidMix-app-electron.git`
-2. Install requierement `npm install`
-3. Start app `npm start`
+### Vidsencoder
+1. Click **Import** to select your video file
+2. Choose your encoder and quality settings
+3. Set output path and click **Encode**
 
-## Contribute
+### YTDownloader
+1. Paste a YouTube URL
+2. Toggle **Auto Best Quality** for automatic best format, or:
+   - Click **Fetch Formats** to see available formats
+   - Select video and audio format IDs
+3. Set output path and click **Download**
 
-Contributions are welcome! Please open an issue to discuss the changes you want to make.
+### Frame Extractor
+1. Click **Import** to select your video
+2. Choose output format and frame rate
+3. Enable **Create Folder** to organize frames
+4. Click **Extract**
 
-(I did this with chat gpt without any real knowledge at the time so there are certainly many areas for improvement)
+## 🛠️ Development
 
-## License
+### Prerequisites
+- Node.js 18+
+- npm or yarn
 
-ISC.
+### Setup
+```bash
+# Clone the repository
+git clone https://github.com/matth-blt/VidMix-app-electron.git
+cd VidMix-app-electron
+
+# Install dependencies
+npm install
+
+# Start development
+npm start
+```
+
+### Available Scripts
+| Command | Description |
+|---------|-------------|
+| `npm start` | Start the app in development mode |
+| `npm test` | Run unit tests with Jest |
+| `npm run preview-setup` | Preview the setup wizard |
+| `npm run package` | Package the app for distribution |
+| `npm run make` | Create platform-specific installers |
+
+### Project Structure
+```
+VidMix-app-electron/
+├── main.js              # Electron main process
+├── preload.js           # Main window preload script
+├── renderer.js          # Main window renderer
+├── index.html           # Main application UI
+├── setup.html           # Setup wizard UI
+├── setup-renderer.js    # Setup wizard logic
+├── setup-preload.js     # Setup preload script
+├── css/                 # Stylesheets
+│   ├── app.css          # Main application styles
+│   ├── setup.css        # Setup wizard styles
+│   └── mediainfo.css    # Media info panel styles
+├── js/                  # Module scripts
+│   ├── settings.js      # Settings page logic
+│   ├── ytdownloader.js  # YouTube downloader logic
+│   └── extract.js       # Frame extractor logic
+└── tests/               # Unit tests
+    ├── setup.test.js    # Setup wizard tests
+    └── preview-setup.js # Setup preview script
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the ISC License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [FFmpeg](https://ffmpeg.org/) - Video processing
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) - YouTube downloading
+- [Electron](https://www.electronjs.org/) - Desktop app framework
