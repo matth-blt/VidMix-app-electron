@@ -595,23 +595,31 @@ ipcMain.handle('browse-output', async () => {
   return result.filePaths[0];
 });
 
-ipcMain.handle('extract-frames', async (event, { inputPath, outputPath, format }) => {
+ipcMain.handle('extract-frames', async (event, { inputPath, outputPath, format, createFolder }) => {
+  // Create output folder if needed
+  if (createFolder && !fs.existsSync(outputPath)) {
+    fs.mkdirSync(outputPath, { recursive: true });
+  }
+
   let ffmpegArgs = [];
 
   if (format === 'PNG') {
     ffmpegArgs = ['-hide_banner', '-i', inputPath, '-sws_flags', 'spline+accurate_rnd+full_chroma_int', '-color_trc', '2', '-colorspace', '2', '-color_primaries', '2', '-map', '0:v', '-c:v', 'png', '-pix_fmt', 'rgb24', '-start_number', '0', path.join(outputPath, '%08d.png')];
   } else if (format === 'TIFF') {
-    // Removed -movflags and -bf flags (not applicable to image output)
     ffmpegArgs = ['-hide_banner', '-i', inputPath, '-sws_flags', 'spline+accurate_rnd+full_chroma_int', '-color_trc', '1', '-colorspace', '1', '-color_primaries', '1', '-map', '0:v', '-c:v', 'tiff', '-pix_fmt', 'rgb24', '-compression_algo', 'deflate', '-start_number', '0', path.join(outputPath, '%08d.tiff')];
   } else if (format === 'JPEG') {
     ffmpegArgs = ['-hide_banner', '-i', inputPath, '-sws_flags', 'spline+accurate_rnd+full_chroma_int', '-color_trc', '2', '-colorspace', '2', '-color_primaries', '2', '-map', '0:v', '-c:v', 'mjpeg', '-pix_fmt', 'yuvj420p', '-q:v', '1', '-start_number', '0', path.join(outputPath, '%08d.jpg')];
   }
 
   return new Promise((resolve, reject) => {
+    event.sender.send('terminal-message', `Extracting frames to: ${outputPath}`);
+
     execFile(ffmpegPath, ffmpegArgs, (error, stdout, stderr) => {
       if (error) {
+        event.sender.send('terminal-message', `✗ Extract failed: ${stderr}`);
         reject(stderr);
       } else {
+        event.sender.send('terminal-message', '✓ Frames extracted successfully!');
         resolve(stdout);
       }
     });
