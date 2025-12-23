@@ -7,7 +7,8 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "preview-setup": "electron tests/preview-setup.js"
   },
   "keywords": [],
   "author": "BOP",
@@ -25,6 +26,7 @@
     "@electron-forge/maker-squirrel": "^7.6.0",
     "@electron-forge/maker-zip": "^7.6.0",
     "electron": "^33.2.1",
+    "jest": "^30.2.0",
     "sass": "^1.83.0"
   },
   "config": {}

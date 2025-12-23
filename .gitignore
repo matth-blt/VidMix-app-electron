@@ -1,5 +1,48 @@
-/node_modules
+# ===== Dependencies =====
+node_modules/
 
+# ===== Build Output =====
+out/
+dist/
+*.dmg
+*.exe
+*.AppImage
+*.deb
+*.rpm
+*.snap
+
+# ===== Electron Forge =====
+.webpack/
+.vite/
+
+# ===== IDE & Editors =====
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ===== Logs =====
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# ===== Testing =====
+coverage/
+.nyc_output/
+
+# ===== Environment =====
+.env
+.env.local
+.env.*.local
+
+# ===== Misc =====
+*.tgz
+package-lock.json
+
+# ===== Project Specific =====
 /enhancr
-
-/package-lock.json

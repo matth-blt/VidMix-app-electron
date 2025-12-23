@@ -63,6 +63,36 @@ let ffprobePath = initBinaryPath('ffprobe');
 let ytdlpPath = initBinaryPath('yt-dlp');
 
 let mainWindow;
+let setupWindow;
+
+// Check if this is first run (no binaries installed)
+function needsSetup() {
+  // Check if any critical binary is missing
+  return !ffmpegPath || !ffprobePath;
+}
+
+function createSetupWindow() {
+  setupWindow = new BrowserWindow({
+    width: 550,
+    height: 500,
+    resizable: false,
+    frame: false,
+    center: true,
+    backgroundColor: '#0d0d14',
+    webPreferences: {
+      preload: path.join(__dirname, 'setup-preload.js'),
+      contextIsolation: true,
+      enableRemoteModule: false,
+      nodeIntegration: false
+    }
+  });
+
+  setupWindow.loadFile('setup.html');
+
+  setupWindow.on('closed', () => {
+    setupWindow = null;
+  });
+}
 
 function createWindow() {
   // macOS: traffic lights on left, Windows/Linux: buttons on right
@@ -87,6 +117,19 @@ function createWindow() {
 
   mainWindow.loadFile('index.html');
 }
+
+// IPC handler to launch main app from setup
+ipcMain.on('launch-main-app', () => {
+  if (setupWindow) {
+    setupWindow.close();
+  }
+  // Re-initialize binary paths after download
+  ffmpegPath = initBinaryPath('ffmpeg');
+  ffprobePath = initBinaryPath('ffprobe');
+  ytdlpPath = initBinaryPath('yt-dlp');
+
+  createWindow();
+});
 
 // System info handlers
 ipcMain.handle('get-platform', () => platform);
@@ -323,10 +366,23 @@ ipcMain.handle('download-ffmpeg', async (event) => {
 });
 
 app.whenReady().then(() => {
-  createWindow();
+  // Check if setup is needed (first run or missing binaries)
+  if (needsSetup()) {
+    console.log('[VidMix] Setup required - launching setup window');
+    createSetupWindow();
+  } else {
+    console.log('[VidMix] All binaries found - launching main app');
+    createWindow();
+  }
 
   app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (BrowserWindow.getAllWindows().length === 0) {
+      if (needsSetup()) {
+        createSetupWindow();
+      } else {
+        createWindow();
+      }
+    }
   });
 });
 
