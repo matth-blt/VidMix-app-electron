@@ -265,22 +265,61 @@ function log(message, type = '') {
 }
 
 // ===== Media Info =====
-function updateMediaInfo(filePath) {
+async function updateMediaInfo(filePath) {
   if (!mediainfoContent) return;
   const fileName = getFileName(filePath);
 
+  // Show loading state
   mediainfoContent.innerHTML = `
     <div class="mediainfo-header-text">
-      <i class="fas fa-video"></i>
+      <i class="fas fa-spinner fa-spin"></i>
       <span class="file-name">${fileName}</span>
     </div>
-    <ul class="mediainfo-list">
-      <li><span class="mediainfo-label">Path</span> <span class="mediainfo-value" title="${filePath}">${filePath.length > 30 ? '...' + filePath.slice(-30) : filePath}</span></li>
-      <li><span class="mediainfo-label">Size</span> <span class="mediainfo-value">--</span></li>
-      <li><span class="mediainfo-label">Duration</span> <span class="mediainfo-value">--</span></li>
-      <li><span class="mediainfo-label">Resolution</span> <span class="mediainfo-value">--</span></li>
-    </ul>
+    <div class="mediainfo-empty">Loading...</div>
   `;
+
+  try {
+    const info = await window.electron.getMediaInfo(filePath);
+
+    if (info.error) {
+      mediainfoContent.innerHTML = `
+        <div class="mediainfo-header-text">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span class="file-name">${fileName}</span>
+        </div>
+        <div class="mediainfo-empty">${info.error}</div>
+      `;
+      return;
+    }
+
+    mediainfoContent.innerHTML = `
+      <div class="mediainfo-header-text">
+        <i class="fas fa-video"></i>
+        <span class="file-name">${info.filename}</span>
+      </div>
+      <ul class="mediainfo-list">
+        <li><span class="mediainfo-label">Duration</span> <span class="mediainfo-value">${info.duration}</span></li>
+        <li><span class="mediainfo-label">Resolution</span> <span class="mediainfo-value">${info.resolution}</span></li>
+        <li><span class="mediainfo-label">Video</span> <span class="mediainfo-value">${info.videoCodec}</span></li>
+        <li><span class="mediainfo-label">Audio</span> <span class="mediainfo-value">${info.audioCodec}</span></li>
+        <li><span class="mediainfo-label">FPS</span> <span class="mediainfo-value">${info.fps}</span></li>
+        <li><span class="mediainfo-label">Bitrate</span> <span class="mediainfo-value">${info.bitrate}</span></li>
+        <li><span class="mediainfo-label">Size</span> <span class="mediainfo-value">${info.size}</span></li>
+        <li><span class="mediainfo-label">Pixel Fmt</span> <span class="mediainfo-value">${info.pixelFormat}</span></li>
+      </ul>
+    `;
+
+    log(`Loaded: ${info.filename} (${info.duration}, ${info.resolution})`, 'info');
+  } catch (e) {
+    mediainfoContent.innerHTML = `
+      <div class="mediainfo-header-text">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span class="file-name">${fileName}</span>
+      </div>
+      <div class="mediainfo-empty">Error loading media info</div>
+    `;
+    log(`Error loading media info: ${e.message}`, 'error');
+  }
 }
 
 // ===== Window Controls =====

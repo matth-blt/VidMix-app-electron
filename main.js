@@ -38,8 +38,7 @@ function findSystemBinary(name) {
 // Initialize binary paths with priority:
 // 1. Local downloaded binary
 // 2. System-installed binary (brew, apt, etc.)
-// 3. ffmpeg-static package
-// 4. null (not found)
+// 3. null (not found)
 function initBinaryPath(name) {
   // 1. Check local binary
   const localPath = getBinaryPath(name);
@@ -339,9 +338,83 @@ app.on('window-all-closed', function () {
 ipcMain.handle('browse-video-file', async () => {
   const result = await dialog.showOpenDialog({
     properties: ['openFile'],
-    filters: [{ name: 'Fichiers vidéo', extensions: ['mp4', 'mkv', 'mov', 'm2ts', 'webm'] }]
+    filters: [{ name: 'Fichiers vidéo', extensions: ['mp4', 'mkv', 'mov', 'm2ts', 'webm', 'avi', 'wmv', 'flv'] }]
   });
   return result.filePaths[0];
+});
+
+// Get media info using ffprobe
+ipcMain.handle('get-media-info', async (event, filePath) => {
+  if (!ffprobePath) {
+    return { error: 'FFprobe not found' };
+  }
+
+  return new Promise((resolve) => {
+    const args = [
+      '-v', 'quiet',
+      '-print_format', 'json',
+      '-show_format',
+      '-show_streams',
+      filePath
+    ];
+
+    execFile(ffprobePath, args, { maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
+      if (error) {
+        resolve({ error: error.message });
+        return;
+      }
+
+      try {
+        const data = JSON.parse(stdout);
+        const videoStream = data.streams?.find(s => s.codec_type === 'video');
+        const audioStream = data.streams?.find(s => s.codec_type === 'audio');
+        const format = data.format;
+
+        // Calculate file size
+        const fileSizeBytes = parseInt(format?.size || 0);
+        const fileSizeMB = (fileSizeBytes / (1024 * 1024)).toFixed(2);
+
+        // Calculate duration
+        const durationSec = parseFloat(format?.duration || 0);
+        const hours = Math.floor(durationSec / 3600);
+        const minutes = Math.floor((durationSec % 3600) / 60);
+        const seconds = Math.floor(durationSec % 60);
+        const duration = hours > 0
+          ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+          : `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+        // Calculate FPS
+        let fps = 'N/A';
+        if (videoStream?.r_frame_rate) {
+          const [num, den] = videoStream.r_frame_rate.split('/');
+          fps = (parseInt(num) / parseInt(den)).toFixed(2);
+        }
+
+        // Calculate bitrate
+        const bitrate = format?.bit_rate
+          ? `${(parseInt(format.bit_rate) / 1000).toFixed(0)} kbps`
+          : 'N/A';
+
+        resolve({
+          filename: path.basename(filePath),
+          path: filePath,
+          size: `${fileSizeMB} MB`,
+          duration: duration,
+          resolution: videoStream ? `${videoStream.width}x${videoStream.height}` : 'N/A',
+          videoCodec: videoStream?.codec_name?.toUpperCase() || 'N/A',
+          audioCodec: audioStream?.codec_name?.toUpperCase() || 'N/A',
+          fps: fps,
+          bitrate: bitrate,
+          pixelFormat: videoStream?.pix_fmt || 'N/A',
+          colorSpace: videoStream?.color_space || 'N/A',
+          audioChannels: audioStream?.channels || 'N/A',
+          sampleRate: audioStream?.sample_rate ? `${audioStream.sample_rate} Hz` : 'N/A'
+        });
+      } catch (e) {
+        resolve({ error: 'Failed to parse media info' });
+      }
+    });
+  });
 });
 
 ipcMain.handle('browse-output-folder', async () => {

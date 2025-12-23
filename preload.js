@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('electron', {
   browseVideoFile: () => ipcRenderer.invoke('browse-video-file'),
   browseOutputFolder: () => ipcRenderer.invoke('browse-output-folder'),
   encodeVideo: (params) => ipcRenderer.invoke('encode-video', params),
+  getMediaInfo: (filePath) => ipcRenderer.invoke('get-media-info', filePath),
 
   // Terminal message listener with cleanup support
   onTerminalMessage: (callback) => {
