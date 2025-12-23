@@ -1,0 +1,163 @@
+/* ===== Progress Bar (Enhancr style) ===== */
+.progress-bar-container {
+    height: var(--progress-height);
+    background: rgba(0, 0, 0, 0.325);
+    border-radius: var(--radius-md);
+    margin: 0 var(--spacing-sm) var(--spacing-sm) var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    position: relative;
+    box-shadow: var(--shadow-md);
+}
+
+.progress-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    position: absolute;
+    z-index: 1;
+}
+
+#progress-status {
+    font-size: 8pt;
+    font-weight: 600;
+    color: var(--text-primary);
+    max-width: 400px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+#progress-eta {
+    font-size: 7pt;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.progress-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: transparent;
+    border-bottom-left-radius: var(--radius-md);
+    border-bottom-right-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg,
+            var(--accent-primary) 0%,
+            rgba(25, 25, 25, 0.6) 33%,
+            var(--accent-primary) 66%,
+            rgba(25, 25, 25, 0.6) 100%);
+    background-size: 300% 100%;
+    border-radius: inherit;
+    transition: width 1s ease 0.3s;
+    animation: animLoad 2s linear infinite;
+}
+
+@keyframes animLoad {
+    0% {
+        background-position: 100%;
+    }
+
+    100% {
+        background-position: 0%;
+    }
+}
+
+.progress-percent {
+    position: absolute;
+    right: var(--spacing-lg);
+    font-weight: 600;
+    font-size: 8pt;
+    color: var(--text-secondary);
+    z-index: 2;
+}
+
+/* FPS Meter */
+#fps-meter {
+    position: absolute;
+    left: var(--spacing-lg);
+    font-size: 8pt;
+    background: rgba(6, 6, 6, 0.43);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-weight: 500;
+    padding: 4px 9px;
+    display: none;
+}
+
+/* Export button */
+.export-btn {
+    position: absolute;
+    right: 60px;
+    font-size: 8pt;
+    font-weight: 500;
+    background: rgba(6, 6, 6, 0.43);
+    border-radius: var(--radius-md);
+    padding: 6px 12px;
+    color: var(--text-secondary);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-normal);
+    border: none;
+    cursor: pointer;
+}
+
+.export-btn:hover {
+    background: rgba(30, 30, 30, 0.43);
+    color: var(--text-primary);
+}
+
+/* Process overlay */
+#process-overlay {
+    background: rgba(0, 0, 0, 0.4);
+    position: absolute;
+    border-radius: var(--radius-lg);
+    visibility: hidden;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Spinner */
+.spinner {
+    animation: rotate 2s linear infinite;
+    width: 50px;
+    height: 50px;
+}
+
+.spinner .path {
+    stroke: var(--text-secondary);
+    stroke-linecap: round;
+    animation: dash 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes dash {
+    0% {
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0;
+    }
+
+    50% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35;
+    }
+
+    100% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124;
+    }
+}

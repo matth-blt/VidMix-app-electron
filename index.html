@@ -1,18 +1,134 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-  <title>Combined Electron App</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'">
+  <title>VidMix</title>
+  <!-- CSS Modules -->
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/terminal.css">
+  <link rel="stylesheet" href="css/queue.css">
+  <link rel="stylesheet" href="css/progress.css">
+  <link rel="stylesheet" href="css/mediainfo.css">
+  <!-- Vendor CSS -->
   <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.min.css">
   <link rel="stylesheet" href="node_modules/animate.css/animate.min.css">
-  <script defer src="renderer.js"></script>
 </head>
+
 <body>
-  <div class="tabs">
-    <button class="tab" onclick="openApp('vidsencoder')">Vidsencoder</button>
-    <button class="tab" onclick="openApp('ytdownloader')">YTDownloader</button>
-    <button class="tab" onclick="openApp('extract')">Extract</button>
+  <div id="app">
+    <!-- Title Bar -->
+    <header class="titlebar">
+      <div class="titlebar-drag">
+        <span class="app-logo"><i class="fas fa-film"></i> VidMix</span>
+      </div>
+      <div class="titlebar-buttons">
+        <button id="btn-minimize"><i class="fas fa-minus"></i></button>
+        <button id="btn-maximize"><i class="far fa-square"></i></button>
+        <button id="btn-close"><i class="fas fa-times"></i></button>
+      </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+      <!-- Sidebar -->
+      <nav class="sidebar">
+        <div class="sidebar-nav">
+          <div class="sidebar-item active" data-tab="vidsencoder" title="Vidsencoder">
+            <i class="fas fa-video"></i>
+            <span class="tooltip">Vidsencoder</span>
+          </div>
+          <div class="sidebar-item" data-tab="ytdownloader" title="YTDownloader">
+            <i class="fab fa-youtube"></i>
+            <span class="tooltip">YTDownloader</span>
+          </div>
+          <div class="sidebar-item" data-tab="extract" title="Extract Frames">
+            <i class="fas fa-images"></i>
+            <span class="tooltip">Extract</span>
+          </div>
+        </div>
+        <div class="sidebar-bottom">
+          <div class="sidebar-item" data-tab="settings" title="Settings">
+            <i class="fas fa-cog"></i>
+            <span class="tooltip">Settings</span>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Content Area -->
+      <main class="content-area">
+        <!-- Center Panel - Tool Options -->
+        <section class="tool-panel" id="tool-panel">
+          <!-- Content loaded dynamically -->
+        </section>
+
+        <!-- Terminal Panel -->
+        <section class="terminal-panel">
+          <div class="terminal-header">
+            <i class="fas fa-terminal"></i>
+            <span>Terminal</span>
+            <button id="clear-terminal" title="Clear"><i class="fas fa-trash-alt"></i></button>
+          </div>
+          <div class="terminal-content" id="terminal">
+            <div class="terminal-line">Ready.</div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Right Panel -->
+      <aside class="right-panel">
+        <!-- Queue -->
+        <section class="queue-panel">
+          <div class="queue-header">
+            <i class="fas fa-list"></i>
+            <span>Queue</span>
+            <span class="queue-count" id="queue-count">0</span>
+          </div>
+          <div class="queue-content" id="queue">
+            <div class="queue-empty">
+              <i class="fas fa-inbox"></i>
+              <p>No tasks in queue</p>
+            </div>
+          </div>
+          <div class="queue-actions">
+            <button id="clear-queue" class="btn-danger"><i class="fas fa-trash"></i> Clear</button>
+            <button id="start-queue" class="btn-primary"><i class="fas fa-play"></i> Start</button>
+          </div>
+        </section>
+
+        <!-- Media Info -->
+        <section class="mediainfo-panel" id="mediainfo-panel">
+          <div class="mediainfo-header">
+            <i class="fas fa-info-circle"></i>
+            <span>Media Info</span>
+          </div>
+          <div class="mediainfo-content" id="mediainfo">
+            <div class="mediainfo-empty">
+              <p>No file loaded</p>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    <!-- Progress Bar -->
+    <footer class="progress-bar-container">
+      <div class="progress-info">
+        <span id="progress-status">Idle</span>
+        <span id="progress-eta"></span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+      </div>
+      <span class="progress-percent" id="progress-percent">0%</span>
+    </footer>
   </div>
-  <div id="app-container"></div>
+
+  <script type="module" src="renderer.js"></script>
 </body>
+
 </html>
