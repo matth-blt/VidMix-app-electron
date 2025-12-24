@@ -1,4 +1,4 @@
-![VidMix Banner](https://github.com/user-attachments/assets/20b08280-e972-41db-af05-7f7e5fdec0eb)
+![VidMix Banner](https://github.com/user-attachments/assets/8d141f52-8ee2-41f7-9ea7-9eb411d6c8bf)
 
 # 🎬 VidMix
 
