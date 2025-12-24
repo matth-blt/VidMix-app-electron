@@ -145,14 +145,14 @@ function showInlineProgress(name, isWaiting = false) {
     el.status.classList.remove('found', 'missing');
 }
 
-function updateInlineProgress(name, percent) {
+function updateInlineProgress(name, percent, message) {
     const el = binaryElements[name];
     if (!el) return;
 
     el.progressFill.classList.remove('waiting');
     el.progressFill.style.width = `${percent}%`;
     el.progressText.textContent = `${percent}%`;
-    el.status.textContent = 'Downloading...';
+    el.status.textContent = message || 'Downloading...';
 }
 
 function hideInlineProgress(name) {
@@ -274,7 +274,7 @@ binaries.forEach(name => {
 // Listen to download progress
 window.electron.onBinaryProgress?.((data) => {
     if (currentlyDownloading && data.progress !== undefined) {
-        updateInlineProgress(currentlyDownloading, data.progress);
+        updateInlineProgress(currentlyDownloading, data.progress, data.message);
     }
 });
 
