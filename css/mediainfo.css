@@ -1,0 +1,387 @@
+/* ===== Media Info (Enhancr style) ===== */
+.mediainfo-panel {
+    height: 180px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-md);
+    position: relative;
+}
+
+/* Triangle pointer */
+.mediainfo-panel::after {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 7.5px;
+    border-style: solid;
+    border-color: transparent transparent var(--bg-tertiary) transparent;
+}
+
+.mediainfo-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    max-width: 100%;
+}
+
+.mediainfo-header-text {
+    font-size: 7.5pt;
+    font-weight: 500;
+    background: rgba(28, 115, 211, 0.2);
+    border-radius: var(--radius-md);
+    padding: 8px 10px;
+    box-shadow: var(--shadow-md);
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.mediainfo-header-text i {
+    color: var(--accent-primary);
+    font-size: 8pt;
+}
+
+.mediainfo-header-text .file-name {
+    color: var(--text-primary);
+}
+
+/* Side bar with icon */
+.mediainfo-side {
+    background: rgba(0, 0, 0, 0.2);
+    position: absolute;
+    width: 36px;
+    height: 100%;
+    left: 0;
+    top: 0;
+    border-bottom-left-radius: var(--radius-md);
+    border-top-left-radius: var(--radius-md);
+}
+
+.mediainfo-side i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-secondary);
+    font-size: 10pt;
+}
+
+.mediainfo-content {
+    flex: 1;
+    padding: 0 var(--spacing-md) var(--spacing-md) var(--spacing-md);
+    font-size: 8pt;
+    overflow-y: auto;
+}
+
+.mediainfo-empty {
+    color: var(--text-dark);
+    text-align: center;
+    padding: var(--spacing-xl);
+    font-size: 9pt;
+}
+
+/* Media info list */
+.mediainfo-list {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: var(--radius-md);
+    list-style: none;
+}
+
+.mediainfo-list li {
+    font-size: 8pt;
+    font-weight: 400;
+    padding: 2px 0;
+    color: var(--text-primary);
+    white-space: nowrap;
+    display: flex;
+    justify-content: space-between;
+}
+
+.mediainfo-label {
+    color: var(--text-muted);
+}
+
+.mediainfo-value {
+    color: var(--accent-secondary);
+    font-weight: 500;
+}
+
+/* Tool panel forms (shared styles) */
+.tool-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xl);
+}
+
+.tool-header h2 {
+    font-size: 12pt;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.tool-header i {
+    font-size: 14pt;
+    color: var(--accent-primary);
+}
+
+.form-group {
+    margin-bottom: var(--spacing-md);
+}
+
+.form-group label {
+    display: block;
+    font-size: 8pt;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-xs);
+}
+
+.input-row {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.form-input {
+    flex: 1;
+    background: rgba(99, 99, 99, 0.35);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    color: var(--text-primary);
+    font-size: 8pt;
+    transition: background var(--transition-fast);
+    outline: none;
+    caret-color: var(--accent-primary);
+}
+
+.form-input:focus {
+    background: rgba(99, 99, 99, 0.5);
+}
+
+.form-input:disabled {
+    opacity: 0.8;
+}
+
+.form-input::placeholder {
+    color: var(--text-dark);
+}
+
+select.form-input {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%23808080' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+}
+
+textarea.form-input {
+    min-height: 100px;
+    resize: vertical;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 7pt;
+}
+
+.btn {
+    background: rgba(44, 44, 44, 0.88);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    color: var(--text-secondary);
+    font-size: 8pt;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn:hover {
+    background: rgba(62, 62, 62, 0.88);
+    color: var(--text-primary);
+}
+
+.btn-action {
+    margin-top: var(--spacing-lg);
+    width: 100%;
+    padding: var(--spacing-md);
+    background: var(--accent-primary);
+    color: white;
+    font-size: 8pt;
+    font-weight: 600;
+    justify-content: center;
+}
+
+.btn-action:hover {
+    background: var(--accent-hover);
+}
+
+.options-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+/* Codec buttons (Enhancr style) */
+.codec-row {
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+}
+
+.codec {
+    background: rgba(44, 44, 44, 0.88);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 7pt;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.codec:hover {
+    background: rgba(62, 62, 62, 0.88);
+}
+
+.codec.active {
+    background: var(--accent-primary);
+    color: white;
+}
+
+/* ===== Toggle Switch (Video/Audio) ===== */
+.toggle-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.toggle-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-md);
+    transition: opacity var(--transition-normal);
+}
+
+.toggle-item.disabled {
+    opacity: 0.4;
+}
+
+.toggle-label {
+    min-width: 70px;
+    font-size: 8pt;
+    font-weight: 500;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.toggle-label i {
+    color: var(--accent-primary);
+    font-size: 10pt;
+}
+
+/* Toggle Switch Styles */
+.toggle-switch {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.toggle-input {
+    opacity: 0;
+    position: absolute;
+    width: 0;
+    height: 0;
+}
+
+.toggle-track {
+    display: block;
+    width: 48px;
+    height: 26px;
+    background: rgba(80, 80, 80, 0.6);
+    border-radius: 50px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.4s ease;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-track::before {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(145deg, #e0e0e0, #a0a0a0);
+    border-radius: 50%;
+    transition: all 0.4s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Checked state - ON */
+.toggle-input:checked+.toggle-track {
+    background: linear-gradient(135deg, var(--accent-primary), #1d4ed8);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2), 0 0 12px var(--accent-glow);
+}
+
+.toggle-input:checked+.toggle-track::before {
+    left: calc(100% - 23px);
+    background: linear-gradient(145deg, #ffffff, #e0e0e0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Format input in toggle */
+.toggle-item .format-input {
+    flex: 1;
+    max-width: 150px;
+}
+
+.toggle-item .format-input:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Auto toggle special styling */
+.auto-toggle {
+    background: linear-gradient(135deg, rgba(30, 92, 206, 0.15), rgba(0, 0, 0, 0.15));
+    border: 1px solid rgba(30, 92, 206, 0.2);
+}
+
+.auto-hint {
+    font-size: 7pt;
+    color: var(--text-muted);
+    margin-left: auto;
+}
+
+/* Manual options section */
+.manual-options {
+    transition: all 0.3s ease;
+}
+
+.manual-options.hidden {
+    display: none;
+}
+
+/* Hidden utility class */
+.hidden {
+    display: none !important;
+}

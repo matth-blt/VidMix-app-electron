@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VidMix Setup</title>
+    <link rel="stylesheet" href="css/setup.css">
+    <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.min.css">
+</head>
+
+<body>
+    <div class="setup-container">
+        <!-- Header with drag region -->
+        <div class="setup-header">
+            <div class="window-controls">
+                <button class="window-btn close" id="btn-close"></button>
+            </div>
+        </div>
+
+        <!-- Screen 1: Splash -->
+        <div id="screen-splash" class="screen active">
+            <div class="splash-content">
+                <!-- VIDMIX Animated Loader -->
+                <div class="loader">
+                    <svg height="0" width="0" viewBox="0 0 64 64" class="absolute">
+                        <defs xmlns="http://www.w3.org/2000/svg">
+                            <linearGradient gradientUnits="userSpaceOnUse" y2="2" x2="0" y1="62" x1="0" id="grad-blue">
+                                <stop stop-color="#1e5cce"></stop>
+                                <stop stop-color="#1c73d3" offset="1"></stop>
+                            </linearGradient>
+                            <linearGradient gradientUnits="userSpaceOnUse" y2="0" x2="0" y1="64" x1="0" id="grad-spin">
+                                <stop stop-color="#1e5cce"></stop>
+                                <stop stop-color="#2568d9" offset="1"></stop>
+                                <animateTransform repeatCount="indefinite"
+                                    keySplines=".42,0,.58,1;.42,0,.58,1;.42,0,.58,1;.42,0,.58,1;.42,0,.58,1;.42,0,.58,1;.42,0,.58,1;.42,0,.58,1"
+                                    keyTimes="0; 0.125; 0.25; 0.375; 0.5; 0.625; 0.75; 0.875; 1" dur="8s"
+                                    values="0 32 32;-270 32 32;-270 32 32;-540 32 32;-540 32 32;-810 32 32;-810 32 32;-1080 32 32;-1080 32 32"
+                                    type="rotate" attributeName="gradientTransform"></animateTransform>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <!-- V -->
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="48" width="48"
+                        class="letter">
+                        <path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#grad-blue)"
+                            d="M 8,8 L 32,56 L 56,8" class="dash" pathLength="360"></path>
+                    </svg>
+                    <!-- I -->
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="48" width="48"
+                        class="letter">
+                        <path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#grad-blue)"
+                            d="M 32,8 L 32,56" class="dash" pathLength="360">
+                        </path>
+                    </svg>
+                    <!-- D -->
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="48" width="48"
+                        class="letter">
+                        <path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#grad-blue)"
+                            d="M 12,8 L 12,56 L 36,56 C 52,56 56,44 56,32 C 56,20 52,8 36,8 Z" class="dash"
+                            pathLength="360"></path>
+                    </svg>
+                    <!-- M -->
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="48" width="48"
+                        class="letter">
+                        <path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#grad-blue)"
+                            d="M 8,56 L 8,8 L 32,40 L 56,8 L 56,56" class="dash" pathLength="360"></path>
+                    </svg>
+                    <!-- I (vertical line) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="48" width="48"
+                        class="letter">
+                        <path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#grad-blue)"
+                            d="M 32,8 L 32,56" class="dash" pathLength="360">
+                        </path>
+                    </svg>
+                    <!-- X -->
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="48" width="48"
+                        class="letter">
+                        <path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#grad-blue)"
+                            d="M 8,8 L 56,56 M 56,8 L 8,56" class="dash" pathLength="360"></path>
+                    </svg>
+                </div>
+
+                <p class="status-text" id="splash-status">Checking system...</p>
+            </div>
+        </div>
+
+        <!-- Screen 2: Requirements -->
+        <div id="screen-requirements" class="screen">
+            <div class="requirements-content">
+                <h2>System Requirements</h2>
+                <p class="section-subtitle">VidMix needs these tools to work properly</p>
+
+                <div class="binary-list">
+                    <div class="binary-card" id="card-ffmpeg">
+                        <div class="binary-icon">
+                            <i class="fas fa-film"></i>
+                        </div>
+                        <div class="binary-info">
+                            <span class="binary-name">FFmpeg</span>
+                            <span class="binary-status" id="status-ffmpeg">Checking...</span>
+                            <span class="binary-path" id="path-ffmpeg"></span>
+                            <div class="binary-progress" id="progress-ffmpeg" style="display:none;">
+                                <div class="progress-bar-inline">
+                                    <div class="progress-fill-inline" id="progress-fill-ffmpeg"></div>
+                                </div>
+                                <span class="progress-text" id="progress-text-ffmpeg">0%</span>
+                            </div>
+                        </div>
+                        <button class="btn-download" id="download-ffmpeg" style="display:none;">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                        <div class="binary-check" id="check-ffmpeg" style="display:none;">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+
+                    <div class="binary-card" id="card-ffprobe">
+                        <div class="binary-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="binary-info">
+                            <span class="binary-name">FFprobe</span>
+                            <span class="binary-status" id="status-ffprobe">Checking...</span>
+                            <span class="binary-path" id="path-ffprobe"></span>
+                            <div class="binary-progress" id="progress-ffprobe" style="display:none;">
+                                <div class="progress-bar-inline">
+                                    <div class="progress-fill-inline" id="progress-fill-ffprobe"></div>
+                                </div>
+                                <span class="progress-text" id="progress-text-ffprobe">0%</span>
+                            </div>
+                        </div>
+                        <button class="btn-download" id="download-ffprobe" style="display:none;">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                        <div class="binary-check" id="check-ffprobe" style="display:none;">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+
+                    <div class="binary-card" id="card-ytdlp">
+                        <div class="binary-icon">
+                            <i class="fab fa-youtube"></i>
+                        </div>
+                        <div class="binary-info">
+                            <span class="binary-name">yt-dlp</span>
+                            <span class="binary-status" id="status-ytdlp">Checking...</span>
+                            <span class="binary-path" id="path-ytdlp"></span>
+                            <div class="binary-progress" id="progress-ytdlp" style="display:none;">
+                                <div class="progress-bar-inline">
+                                    <div class="progress-fill-inline" id="progress-fill-ytdlp"></div>
+                                </div>
+                                <span class="progress-text" id="progress-text-ytdlp">0%</span>
+                            </div>
+                        </div>
+                        <button class="btn-download" id="download-ytdlp" style="display:none;">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                        <div class="binary-check" id="check-ytdlp" style="display:none;">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="btn-skip">
+                        <i class="fas fa-forward"></i> Skip & Start
+                    </button>
+                    <button class="btn btn-primary" id="btn-download-all" style="display:none;">
+                        <i class="fas fa-download"></i> Download All
+                    </button>
+                    <button class="btn btn-primary" id="btn-continue" style="display:none;">
+                        <i class="fas fa-play"></i> Continue
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="setup-renderer.js"></script>
+</body>
+
+</html>
