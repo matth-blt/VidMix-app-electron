@@ -215,11 +215,33 @@ function downloadFile(url, destPath, onProgress) {
 
         const totalSize = parseInt(response.headers['content-length'], 10);
         let downloadedSize = 0;
+        let lastReportedProgress = 0;
+
+        // Log for debugging
+        console.log(`[Download] Starting: ${urlToFetch}`);
+        console.log(`[Download] Content-Length: ${totalSize || 'not provided'}`);
 
         response.on('data', (chunk) => {
           downloadedSize += chunk.length;
-          if (totalSize && onProgress) {
-            onProgress(Math.round((downloadedSize / totalSize) * 100));
+
+          if (onProgress) {
+            if (totalSize && !isNaN(totalSize) && totalSize > 0) {
+              // Calculate real percentage
+              const progress = Math.round((downloadedSize / totalSize) * 100);
+              if (progress !== lastReportedProgress) {
+                lastReportedProgress = progress;
+                onProgress(progress, downloadedSize, totalSize);
+              }
+            } else {
+              // No Content-Length: report bytes downloaded (fake progress based on expected size)
+              // Estimate ~100MB for FFmpeg packages
+              const estimatedSize = 100 * 1024 * 1024;
+              const fakeProgress = Math.min(95, Math.round((downloadedSize / estimatedSize) * 100));
+              if (fakeProgress !== lastReportedProgress) {
+                lastReportedProgress = fakeProgress;
+                onProgress(fakeProgress, downloadedSize, null);
+              }
+            }
           }
         });
 
@@ -227,6 +249,7 @@ function downloadFile(url, destPath, onProgress) {
 
         file.on('finish', () => {
           file.close();
+          console.log(`[Download] Complete: ${downloadedSize} bytes`);
           resolve(destPath);
         });
 
@@ -285,8 +308,10 @@ ipcMain.handle('download-ffmpeg', async (event) => {
 
       // Download ffmpeg
       const ffmpegZip = path.join(tmpDir, 'ffmpeg.zip');
-      await downloadFile(urls.ffmpeg, ffmpegZip, (progress) => {
-        mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: Math.round(progress * 0.4), message: 'Downloading FFmpeg...' });
+      await downloadFile(urls.ffmpeg, ffmpegZip, (progress, downloaded, total) => {
+        const mb = (downloaded / 1024 / 1024).toFixed(1);
+        const totalMb = total ? (total / 1024 / 1024).toFixed(1) : '?';
+        mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: Math.round(progress * 0.4), message: `FFmpeg: ${mb}/${totalMb} MB` });
       });
 
       // Extract ffmpeg
@@ -297,8 +322,10 @@ ipcMain.handle('download-ffmpeg', async (event) => {
       // Download ffprobe
       mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: 50, message: 'Downloading FFprobe...' });
       const ffprobeZip = path.join(tmpDir, 'ffprobe.zip');
-      await downloadFile(urls.ffprobe, ffprobeZip, (progress) => {
-        mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: 50 + Math.round(progress * 0.4), message: 'Downloading FFprobe...' });
+      await downloadFile(urls.ffprobe, ffprobeZip, (progress, downloaded, total) => {
+        const mb = (downloaded / 1024 / 1024).toFixed(1);
+        const totalMb = total ? (total / 1024 / 1024).toFixed(1) : '?';
+        mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: 50 + Math.round(progress * 0.4), message: `FFprobe: ${mb}/${totalMb} MB` });
       });
 
       // Extract ffprobe
@@ -318,8 +345,10 @@ ipcMain.handle('download-ffmpeg', async (event) => {
       mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: 0, message: 'Downloading FFmpeg (large file)...' });
 
       const ffmpegZip = path.join(tmpDir, 'ffmpeg-win.zip');
-      await downloadFile(urls.ffmpeg, ffmpegZip, (progress) => {
-        mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: Math.round(progress * 0.7), message: 'Downloading FFmpeg...' });
+      await downloadFile(urls.ffmpeg, ffmpegZip, (progress, downloaded, total) => {
+        const mb = (downloaded / 1024 / 1024).toFixed(1);
+        const totalMb = total ? (total / 1024 / 1024).toFixed(1) : '?';
+        mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: Math.round(progress * 0.7), message: `FFmpeg: ${mb}/${totalMb} MB` });
       });
 
       mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: 75, message: 'Extracting (this may take a moment)...' });
