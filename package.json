@@ -1,6 +1,6 @@
 {
   "name": "vidmix",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "main": "main.js",
   "scripts": {
     "start": "electron-forge start",
@@ -11,8 +11,8 @@
     "preview-setup": "electron tests/preview-setup.js"
   },
   "keywords": [],
-  "author": "BOP",
-  "license": "ISC",
+  "author": "matth-blt",
+  "license": "MIT",
   "description": "Combined Electron app with Vidsencoder and YTDownloader",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.7.2",
@@ -27,8 +27,6 @@
     "@electron-forge/maker-squirrel": "^7.6.0",
     "@electron-forge/maker-zip": "^7.6.0",
     "@electron-forge/plugin-auto-unpack-natives": "^7.10.2",
-    "@electron-forge/plugin-fuses": "^7.10.2",
-    "@electron/fuses": "^2.0.0",
     "electron": "^33.2.1",
     "jest": "^30.2.0",
     "sass": "^1.83.0"
