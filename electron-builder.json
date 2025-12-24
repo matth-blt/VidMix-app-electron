@@ -19,7 +19,8 @@
         "target": [
             "dmg",
             "zip"
-        ]
+        ],
+        "icon": "assets/icon.icns"
     },
     "dmg": {
         "title": "VidMix",
