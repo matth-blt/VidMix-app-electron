@@ -275,10 +275,10 @@ ipcMain.handle('download-ytdlp', async (event) => {
   const destPath = getBinaryPath('yt-dlp');
 
   try {
-    mainWindow?.webContents.send('download-binary-progress', { name: 'ytdlp', progress: 0, message: 'Downloading yt-dlp...' });
+    event.sender.send('download-binary-progress', { name: 'ytdlp', progress: 0, message: 'Downloading yt-dlp...' });
 
     await downloadFile(urls.ytdlp, destPath, (progress) => {
-      mainWindow?.webContents.send('download-binary-progress', { name: 'ytdlp', progress });
+      event.sender.send('download-binary-progress', { name: 'ytdlp', progress });
     });
 
     // Make executable on Unix
@@ -304,32 +304,32 @@ ipcMain.handle('download-ffmpeg', async (event) => {
   try {
     if (platform === 'darwin') {
       // macOS: Download ffmpeg and ffprobe separately (zip files)
-      mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: 0, message: 'Downloading FFmpeg...' });
+      event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: 0, message: 'Downloading FFmpeg...' });
 
       // Download ffmpeg
       const ffmpegZip = path.join(tmpDir, 'ffmpeg.zip');
       await downloadFile(urls.ffmpeg, ffmpegZip, (progress, downloaded, total) => {
         const mb = (downloaded / 1024 / 1024).toFixed(1);
         const totalMb = total ? (total / 1024 / 1024).toFixed(1) : '?';
-        mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: Math.round(progress * 0.4), message: `FFmpeg: ${mb}/${totalMb} MB` });
+        event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: Math.round(progress * 0.4), message: `FFmpeg: ${mb}/${totalMb} MB` });
       });
 
       // Extract ffmpeg
-      mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: 45, message: 'Extracting FFmpeg...' });
+      event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: 45, message: 'Extracting FFmpeg...' });
       await extractZip(ffmpegZip, { dir: binPath });
       fs.unlinkSync(ffmpegZip);
 
       // Download ffprobe
-      mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: 50, message: 'Downloading FFprobe...' });
+      event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: 50, message: 'Downloading FFprobe...' });
       const ffprobeZip = path.join(tmpDir, 'ffprobe.zip');
       await downloadFile(urls.ffprobe, ffprobeZip, (progress, downloaded, total) => {
         const mb = (downloaded / 1024 / 1024).toFixed(1);
         const totalMb = total ? (total / 1024 / 1024).toFixed(1) : '?';
-        mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: 50 + Math.round(progress * 0.4), message: `FFprobe: ${mb}/${totalMb} MB` });
+        event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: 50 + Math.round(progress * 0.4), message: `FFprobe: ${mb}/${totalMb} MB` });
       });
 
       // Extract ffprobe
-      mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: 95, message: 'Extracting FFprobe...' });
+      event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: 95, message: 'Extracting FFprobe...' });
       await extractZip(ffprobeZip, { dir: binPath });
       fs.unlinkSync(ffprobeZip);
 
@@ -337,21 +337,21 @@ ipcMain.handle('download-ffmpeg', async (event) => {
       fs.chmodSync(path.join(binPath, 'ffmpeg'), '755');
       fs.chmodSync(path.join(binPath, 'ffprobe'), '755');
 
-      mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: 100, message: 'Done!' });
+      event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: 100, message: 'Done!' });
       return { success: true, path: binPath };
 
     } else if (platform === 'win32') {
       // Windows: Download the full package and extract
-      mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: 0, message: 'Downloading FFmpeg (large file)...' });
+      event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: 0, message: 'Downloading FFmpeg (large file)...' });
 
       const ffmpegZip = path.join(tmpDir, 'ffmpeg-win.zip');
       await downloadFile(urls.ffmpeg, ffmpegZip, (progress, downloaded, total) => {
         const mb = (downloaded / 1024 / 1024).toFixed(1);
         const totalMb = total ? (total / 1024 / 1024).toFixed(1) : '?';
-        mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: Math.round(progress * 0.7), message: `FFmpeg: ${mb}/${totalMb} MB` });
+        event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: Math.round(progress * 0.7), message: `FFmpeg: ${mb}/${totalMb} MB` });
       });
 
-      mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: 75, message: 'Extracting (this may take a moment)...' });
+      event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: 75, message: 'Extracting (this may take a moment)...' });
 
       // Extract to temp, then move binaries
       const extractDir = path.join(tmpDir, 'ffmpeg-extract');
@@ -378,7 +378,7 @@ ipcMain.handle('download-ffmpeg', async (event) => {
       fs.unlinkSync(ffmpegZip);
       fs.rmSync(extractDir, { recursive: true, force: true });
 
-      mainWindow?.webContents.send('download-binary-progress', { name: 'ffmpeg', progress: 100, message: 'Done!' });
+      event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: 100, message: 'Done!' });
       return { success: true, path: binPath };
 
     } else {
