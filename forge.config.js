@@ -1,4 +1,14 @@
+/**
+ * @fileoverview Electron Forge Configuration
+ * @description Build and packaging configuration for VidMix
+ * @see https://www.electronforge.io/config/configuration
+ */
+
 module.exports = {
+    /**
+     * Electron Packager configuration
+     * @type {Object}
+     */
     packagerConfig: {
         name: 'VidMix',
         executableName: 'VidMix',
@@ -6,9 +16,14 @@ module.exports = {
         appCategoryType: 'public.app-category.video',
         asar: true
     },
+
     rebuildConfig: {},
+
+    /**
+     * Platform-specific installer makers
+     * @type {Array}
+     */
     makers: [
-        // macOS DMG
         {
             name: '@electron-forge/maker-dmg',
             config: {
@@ -16,19 +31,16 @@ module.exports = {
                 format: 'ULFO'
             }
         },
-        // macOS ZIP (for auto-update)
         {
             name: '@electron-forge/maker-zip',
             platforms: ['darwin']
         },
-        // Windows Squirrel installer
         {
             name: '@electron-forge/maker-squirrel',
             config: {
                 name: 'VidMix'
             }
         },
-        // Linux DEB
         {
             name: '@electron-forge/maker-deb',
             config: {
@@ -41,7 +53,6 @@ module.exports = {
                 }
             }
         },
-        // Linux RPM
         {
             name: '@electron-forge/maker-rpm',
             config: {
@@ -54,6 +65,11 @@ module.exports = {
             }
         }
     ],
+
+    /**
+     * Forge plugins
+     * @type {Array}
+     */
     plugins: [
         {
             name: '@electron-forge/plugin-auto-unpack-natives',

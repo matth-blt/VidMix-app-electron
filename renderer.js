@@ -3,13 +3,13 @@
  * Main entry point for UI logic
  */
 
-// Import modules
+/** Module imports */
 import * as vidsencoder from './js/vidsencoder.js';
 import * as ytdownloader from './js/ytdownloader.js';
 import * as extract from './js/extract.js';
 import * as settings from './js/settings.js';
 
-// ===== State Management =====
+/** State Management */
 const state = {
   currentTab: 'vidsencoder',
   queue: [],
@@ -17,7 +17,7 @@ const state = {
   mediaInfo: null
 };
 
-// Module map
+/** Module registry */
 const modules = {
   vidsencoder,
   ytdownloader,
@@ -25,14 +25,13 @@ const modules = {
   settings
 };
 
-// ===== DOM Elements =====
+/** DOM Elements */
 let toolPanel, terminal, queueContent, mediainfoContent;
 let progressFill, progressPercent, progressStatus, progressEta;
 let splashOverlay, splashStatus;
 
-// ===== Initialization =====
+/** Initialization */
 document.addEventListener('DOMContentLoaded', async () => {
-  // Cache DOM elements
   toolPanel = document.getElementById('tool-panel');
   terminal = document.getElementById('terminal');
   queueContent = document.getElementById('queue');
@@ -44,39 +43,32 @@ document.addEventListener('DOMContentLoaded', async () => {
   splashOverlay = document.getElementById('splash-overlay');
   splashStatus = document.getElementById('splash-status');
 
-  // Show splash and initialize app
   await initializeWithSplash();
 });
 
-// ===== Splash Screen & Initialization =====
+/**
+ * Initializes the application with splash screen
+ * @async
+ */
 async function initializeWithSplash() {
   try {
-    // Update splash status
     updateSplashStatus('Detecting platform...');
     await detectAndAdaptOS();
 
-    // Check binaries
     updateSplashStatus('Checking binaries...');
     await checkBinariesStatus();
 
-    // Setup UI
     updateSplashStatus('Setting up interface...');
     setupNavigation();
     setupWindowControls();
     setupQueueControls();
     setupIPCListeners();
 
-    // Load initial tab
     updateSplashStatus('Loading modules...');
     loadTab('vidsencoder');
 
-    // Minimum splash display time (for smooth UX)
     await new Promise(resolve => setTimeout(resolve, 1800));
-
-    // Sweep out the splash screen
     await hideSplash();
-
-    // Log ready after splash is gone
     log('VidMix ready.', 'success');
   } catch (e) {
     console.error('Initialization error:', e);
@@ -84,38 +76,41 @@ async function initializeWithSplash() {
   }
 }
 
+/**
+ * Updates the splash screen status text
+ * @param {string} text - Status message to display
+ */
 function updateSplashStatus(text) {
   if (splashStatus) {
     splashStatus.textContent = text;
   }
 }
 
+/**
+ * Hides the splash screen with animation
+ * @async
+ */
 async function hideSplash() {
   if (!splashOverlay) return;
-
-  // Add sweep-out animation class
   splashOverlay.classList.add('sweep-out');
-
-  // Wait for animation to complete
   await new Promise(resolve => setTimeout(resolve, 600));
-
-  // Hide and remove from DOM flow
   splashOverlay.classList.add('hidden');
 }
 
-// ===== OS Detection =====
+/**
+ * Detects the OS and adapts UI accordingly
+ * @async
+ */
 async function detectAndAdaptOS() {
   try {
     const platform = await window.electron.getPlatform();
     document.body.classList.add(`platform-${platform}`);
 
-    // macOS: hide custom window buttons (use native traffic lights)
     if (platform === 'darwin') {
       const titlebarButtons = document.querySelector('.titlebar-buttons');
       if (titlebarButtons) {
         titlebarButtons.style.display = 'none';
       }
-      // Add padding for traffic lights
       const titlebar = document.querySelector('.titlebar');
       if (titlebar) {
         titlebar.style.paddingLeft = '80px';
@@ -128,7 +123,10 @@ async function detectAndAdaptOS() {
   }
 }
 
-// ===== Check Binaries =====
+/**
+ * Checks and logs the status of required binaries
+ * @async
+ */
 async function checkBinariesStatus() {
   try {
     const binaries = await window.electron.checkBinaries();
@@ -146,7 +144,9 @@ async function checkBinariesStatus() {
   }
 }
 
-// ===== Navigation =====
+/**
+ * Sets up sidebar navigation click handlers
+ */
 function setupNavigation() {
   document.querySelectorAll('.sidebar-item').forEach(item => {
     item.addEventListener('click', () => {
@@ -156,25 +156,27 @@ function setupNavigation() {
   });
 }
 
+/**
+ * Loads and initializes a tab module
+ * @param {string} tabName - Name of the tab to load
+ */
 function loadTab(tabName) {
-  // Update sidebar active state
   document.querySelectorAll('.sidebar-item').forEach(item => {
     item.classList.toggle('active', item.dataset.tab === tabName);
   });
 
-  // Get module
   const module = modules[tabName];
   if (!module) return;
 
-  // Load template
   toolPanel.innerHTML = module.template;
   state.currentTab = tabName;
 
-  // Initialize module with shared functions
   module.init(log, addQueueItem, updateMediaInfo, getFileName);
 }
 
-// ===== Queue Management =====
+/**
+ * Sets up queue control button handlers
+ */
 function setupQueueControls() {
   document.getElementById('clear-queue')?.addEventListener('click', clearQueue);
   document.getElementById('start-queue')?.addEventListener('click', startQueue);
@@ -184,6 +186,10 @@ function setupQueueControls() {
   });
 }
 
+/**
+ * Adds an item to the processing queue
+ * @param {Object} item - Queue item with title and processing info
+ */
 function addQueueItem(item) {
   item.id = Date.now();
   state.queue.push(item);
@@ -191,17 +197,27 @@ function addQueueItem(item) {
   log(`Added to queue: ${item.title}`, 'success');
 }
 
+/**
+ * Removes an item from the queue by ID
+ * @param {number} id - Item ID to remove
+ */
 function removeQueueItem(id) {
   state.queue = state.queue.filter(item => item.id !== id);
   renderQueue();
 }
 
+/**
+ * Clears all items from the queue
+ */
 function clearQueue() {
   state.queue = [];
   renderQueue();
   log('Queue cleared.', 'info');
 }
 
+/**
+ * Renders the queue UI
+ */
 function renderQueue() {
   const count = state.queue.length;
   document.getElementById('queue-count').textContent = count;
@@ -231,7 +247,6 @@ function renderQueue() {
     </div>
   `).join('');
 
-  // Add remove handlers
   queueContent.querySelectorAll('.queue-item-remove').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -240,6 +255,10 @@ function renderQueue() {
   });
 }
 
+/**
+ * Starts processing all items in the queue
+ * @async
+ */
 async function startQueue() {
   if (state.queue.length === 0) {
     log('Queue is empty.', 'warning');
@@ -278,6 +297,12 @@ async function startQueue() {
   log('Queue finished.', 'success');
 }
 
+/**
+ * Processes a single queue item based on its type
+ * @async
+ * @param {Object} item - Queue item with type and data
+ * @returns {Promise<*>} Processing result
+ */
 async function processQueueItem(item) {
   switch (item.type) {
     case 'encode':
@@ -289,7 +314,12 @@ async function processQueueItem(item) {
   }
 }
 
-// ===== Progress =====
+/**
+ * Updates the progress bar UI
+ * @param {number} percent - Progress percentage (0-100)
+ * @param {string} status - Status message
+ * @param {string} [eta=''] - Optional ETA string
+ */
 function updateProgress(percent, status, eta = '') {
   if (progressFill) progressFill.style.width = `${percent}%`;
   if (progressPercent) progressPercent.textContent = `${Math.round(percent)}%`;
@@ -297,7 +327,11 @@ function updateProgress(percent, status, eta = '') {
   if (progressEta) progressEta.textContent = eta;
 }
 
-// ===== Terminal =====
+/**
+ * Logs a message to the terminal panel
+ * @param {string} message - Message to log
+ * @param {string} [type=''] - Message type (info, success, warning, error)
+ */
 function log(message, type = '') {
   if (!terminal) return;
   const line = document.createElement('div');
@@ -307,12 +341,15 @@ function log(message, type = '') {
   terminal.scrollTop = terminal.scrollHeight;
 }
 
-// ===== Media Info =====
+/**
+ * Updates the media info panel with file details
+ * @async
+ * @param {string} filePath - Path to media file
+ */
 async function updateMediaInfo(filePath) {
   if (!mediainfoContent) return;
   const fileName = getFileName(filePath);
 
-  // Show loading state
   mediainfoContent.innerHTML = `
     <div class="mediainfo-header-text">
       <i class="fas fa-spinner fa-spin"></i>
@@ -365,7 +402,9 @@ async function updateMediaInfo(filePath) {
   }
 }
 
-// ===== Window Controls =====
+/**
+ * Sets up window control button handlers (minimize, maximize, close)
+ */
 function setupWindowControls() {
   document.getElementById('btn-minimize')?.addEventListener('click', () => {
     window.electron?.minimize?.();
@@ -378,14 +417,15 @@ function setupWindowControls() {
   });
 }
 
-// ===== IPC Listeners =====
+/**
+ * Sets up IPC event listeners for progress and messages
+ */
 function setupIPCListeners() {
   window.electron?.onDownloadProgress?.((progress) => {
     const match = progress.match(/(\d+(\.\d+)?)%/);
     if (match) {
       updateProgress(parseFloat(match[1]), 'Downloading...');
     }
-    // Log raw yt-dlp output
     log(progress.trim());
   });
 
@@ -393,7 +433,6 @@ function setupIPCListeners() {
     log(message);
   });
 
-  // Listen to encoding progress
   window.electron?.onEncodingProgress?.((data) => {
     if (data.progress !== undefined) {
       updateProgress(data.progress, data.status || 'Encoding...');
@@ -404,7 +443,11 @@ function setupIPCListeners() {
   });
 }
 
-// ===== Utilities =====
+/**
+ * Extracts filename without extension from a path
+ * @param {string} filePath - Full file path
+ * @returns {string} Filename without extension
+ */
 function getFileName(filePath) {
   return filePath.split(/[\\/]/).pop().split('.').slice(0, -1).join('.');
 }

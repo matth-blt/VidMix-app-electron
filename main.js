@@ -1,53 +1,63 @@
+/**
+ * @fileoverview VidMix Main Process
+ * @description Electron main process handling windows, IPC, and binary management
+ */
+
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
 const { exec, spawn, execFile } = require('child_process');
 
-// Paths
 const userDataPath = app.getPath('userData');
 const binPath = path.join(userDataPath, 'bin');
-const platform = process.platform; // 'darwin', 'win32', 'linux'
+const platform = process.platform;
 
-// Ensure bin directory exists
 if (!fs.existsSync(binPath)) {
   fs.mkdirSync(binPath, { recursive: true });
 }
 
-// Binary paths
+/**
+ * Gets the full path for a binary in the local bin directory
+ * @param {string} name - Binary name without extension
+ * @returns {string} Full path with platform-specific extension
+ */
 const getBinaryPath = (name) => {
   const ext = platform === 'win32' ? '.exe' : '';
   return path.join(binPath, name + ext);
 };
 
-// Find system-installed binary using 'which' (Unix) or 'where' (Windows)
+/**
+ * Finds a system-installed binary using 'which' (Unix) or 'where' (Windows)
+ * @param {string} name - Binary name to search for
+ * @returns {string|null} Path to the binary or null if not found
+ */
 function findSystemBinary(name) {
   try {
     const command = platform === 'win32' ? 'where' : 'which';
     const result = require('child_process').execSync(`${command} ${name}`, { encoding: 'utf-8' });
-    const binPath = result.trim().split('\n')[0]; // Take first result
+    const binPath = result.trim().split('\n')[0];
     if (binPath && fs.existsSync(binPath)) {
       return binPath;
     }
   } catch (e) {
-    // Not found
+    return null;
   }
   return null;
 }
 
-// Initialize binary paths with priority:
-// 1. Local downloaded binary
-// 2. System-installed binary (brew, apt, etc.)
-// 3. null (not found)
+/**
+ * Initializes binary path with priority: local > system > null
+ * @param {string} name - Binary name
+ * @returns {string|null} Path to the binary or null if not found
+ */
 function initBinaryPath(name) {
-  // 1. Check local binary
   const localPath = getBinaryPath(name);
   if (fs.existsSync(localPath)) {
     console.log(`[VidMix] Using local ${name}: ${localPath}`);
     return localPath;
   }
 
-  // 2. Check system binary
   const systemPath = findSystemBinary(name);
   if (systemPath) {
     console.log(`[VidMix] Using system ${name}: ${systemPath}`);
@@ -65,12 +75,17 @@ let ytdlpPath = initBinaryPath('yt-dlp');
 let mainWindow;
 let setupWindow;
 
-// Check if this is first run (no binaries installed)
+/**
+ * Checks if the setup wizard is needed (missing critical binaries)
+ * @returns {boolean} True if setup is needed
+ */
 function needsSetup() {
-  // Check if any critical binary is missing
   return !ffmpegPath || !ffprobePath;
 }
 
+/**
+ * Creates the setup wizard window for first-run configuration
+ */
 function createSetupWindow() {
   setupWindow = new BrowserWindow({
     width: 550,
@@ -94,8 +109,10 @@ function createSetupWindow() {
   });
 }
 
+/**
+ * Creates the main application window
+ */
 function createWindow() {
-  // macOS: traffic lights on left, Windows/Linux: buttons on right
   const titleBarStyle = platform === 'darwin' ? 'hiddenInset' : 'hidden';
 
   mainWindow = new BrowserWindow({
@@ -118,22 +135,22 @@ function createWindow() {
   mainWindow.loadFile('index.html');
 }
 
-// IPC handler to launch main app from setup
 ipcMain.on('launch-main-app', () => {
   if (setupWindow) {
     setupWindow.close();
   }
-  // Re-initialize binary paths after download
   ffmpegPath = initBinaryPath('ffmpeg');
   ffprobePath = initBinaryPath('ffprobe');
   ytdlpPath = initBinaryPath('yt-dlp');
-
   createWindow();
 });
 
-// System info handlers
 ipcMain.handle('get-platform', () => platform);
 ipcMain.handle('get-bin-path', () => binPath);
+
+/**
+ * @returns {Object} Binary status object with found, path, and isSystem for each binary
+ */
 ipcMain.handle('check-binaries', () => {
   return {
     ffmpeg: {
@@ -154,7 +171,6 @@ ipcMain.handle('check-binaries', () => {
   };
 });
 
-// Window control IPC handlers
 ipcMain.on('window-minimize', () => mainWindow?.minimize());
 ipcMain.on('window-maximize', () => {
   if (mainWindow?.isMaximized()) {
@@ -164,11 +180,10 @@ ipcMain.on('window-maximize', () => {
   }
 });
 ipcMain.on('window-close', () => {
-  // Quit the app completely (not just close window)
   app.quit();
 });
 
-// ===== Binary Download Handlers =====
+/** @type {Object.<string, {ffmpeg: string, ffprobe?: string, ytdlp: string}>} */
 const downloadUrls = {
   darwin: {
     ffmpeg: 'https://evermeet.cx/ffmpeg/getrelease/zip',
@@ -185,7 +200,13 @@ const downloadUrls = {
   }
 };
 
-// Helper to download file with proper redirect handling
+/**
+ * Downloads a file with redirect handling and progress tracking
+ * @param {string} url - URL to download from
+ * @param {string} destPath - Destination file path
+ * @param {function(number, number, number|null): void} [onProgress] - Progress callback (percent, downloaded, total)
+ * @returns {Promise<string>} Resolves with destination path on success
+ */
 function downloadFile(url, destPath, onProgress) {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(destPath);
@@ -196,14 +217,11 @@ function downloadFile(url, destPath, onProgress) {
         return;
       }
 
-      // Parse URL to handle both http and https
       const urlObj = new URL(urlToFetch);
       const httpModule = urlObj.protocol === 'https:' ? https : require('http');
 
       httpModule.get(urlToFetch, (response) => {
-        // Handle redirects (301, 302, 303, 307, 308)
         if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
-          // Resolve relative URLs
           const redirectUrl = new URL(response.headers.location, urlToFetch).href;
           return doRequest(redirectUrl, redirectCount + 1);
         }
@@ -217,7 +235,6 @@ function downloadFile(url, destPath, onProgress) {
         let downloadedSize = 0;
         let lastReportedProgress = 0;
 
-        // Log for debugging
         console.log(`[Download] Starting: ${urlToFetch}`);
         console.log(`[Download] Content-Length: ${totalSize || 'not provided'}`);
 
@@ -226,15 +243,12 @@ function downloadFile(url, destPath, onProgress) {
 
           if (onProgress) {
             if (totalSize && !isNaN(totalSize) && totalSize > 0) {
-              // Calculate real percentage
               const progress = Math.round((downloadedSize / totalSize) * 100);
               if (progress !== lastReportedProgress) {
                 lastReportedProgress = progress;
                 onProgress(progress, downloadedSize, totalSize);
               }
             } else {
-              // No Content-Length: report bytes downloaded (fake progress based on expected size)
-              // Estimate ~100MB for FFmpeg packages
               const estimatedSize = 100 * 1024 * 1024;
               const fakeProgress = Math.min(95, Math.round((downloadedSize / estimatedSize) * 100));
               if (fakeProgress !== lastReportedProgress) {
@@ -267,7 +281,11 @@ function downloadFile(url, destPath, onProgress) {
   });
 }
 
-// Download yt-dlp
+/**
+ * Downloads yt-dlp binary for the current platform
+ * @param {Electron.IpcMainInvokeEvent} event - IPC event
+ * @returns {Promise<{success: boolean, path?: string, error?: string}>}
+ */
 ipcMain.handle('download-ytdlp', async (event) => {
   const urls = downloadUrls[platform];
   if (!urls?.ytdlp) throw new Error('No yt-dlp URL for this platform');
@@ -281,7 +299,6 @@ ipcMain.handle('download-ytdlp', async (event) => {
       event.sender.send('download-binary-progress', { name: 'ytdlp', progress });
     });
 
-    // Make executable on Unix
     if (platform !== 'win32') {
       fs.chmodSync(destPath, '755');
     }
@@ -292,7 +309,11 @@ ipcMain.handle('download-ytdlp', async (event) => {
   }
 });
 
-// Download FFmpeg with extraction
+/**
+ * Downloads and extracts FFmpeg/FFprobe for the current platform
+ * @param {Electron.IpcMainInvokeEvent} event - IPC event
+ * @returns {Promise<{success: boolean, path?: string, error?: string}>}
+ */
 ipcMain.handle('download-ffmpeg', async (event) => {
   const urls = downloadUrls[platform];
   if (!urls?.ffmpeg) throw new Error('No FFmpeg URL for this platform');
@@ -303,10 +324,8 @@ ipcMain.handle('download-ffmpeg', async (event) => {
 
   try {
     if (platform === 'darwin') {
-      // macOS: Download ffmpeg and ffprobe separately (zip files)
       event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: 0, message: 'Downloading FFmpeg...' });
 
-      // Download ffmpeg
       const ffmpegZip = path.join(tmpDir, 'ffmpeg.zip');
       await downloadFile(urls.ffmpeg, ffmpegZip, (progress, downloaded, total) => {
         const mb = (downloaded / 1024 / 1024).toFixed(1);
@@ -314,12 +333,10 @@ ipcMain.handle('download-ffmpeg', async (event) => {
         event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: Math.round(progress * 0.4), message: `FFmpeg: ${mb}/${totalMb} MB` });
       });
 
-      // Extract ffmpeg
       event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: 45, message: 'Extracting FFmpeg...' });
       await extractZip(ffmpegZip, { dir: binPath });
       fs.unlinkSync(ffmpegZip);
 
-      // Download ffprobe
       event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: 50, message: 'Downloading FFprobe...' });
       const ffprobeZip = path.join(tmpDir, 'ffprobe.zip');
       await downloadFile(urls.ffprobe, ffprobeZip, (progress, downloaded, total) => {
@@ -328,12 +345,10 @@ ipcMain.handle('download-ffmpeg', async (event) => {
         event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: 50 + Math.round(progress * 0.4), message: `FFprobe: ${mb}/${totalMb} MB` });
       });
 
-      // Extract ffprobe
       event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: 95, message: 'Extracting FFprobe...' });
       await extractZip(ffprobeZip, { dir: binPath });
       fs.unlinkSync(ffprobeZip);
 
-      // Make executable
       fs.chmodSync(path.join(binPath, 'ffmpeg'), '755');
       fs.chmodSync(path.join(binPath, 'ffprobe'), '755');
 
@@ -341,7 +356,6 @@ ipcMain.handle('download-ffmpeg', async (event) => {
       return { success: true, path: binPath };
 
     } else if (platform === 'win32') {
-      // Windows: Download the full package and extract
       event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: 0, message: 'Downloading FFmpeg (large file)...' });
 
       const ffmpegZip = path.join(tmpDir, 'ffmpeg-win.zip');
@@ -353,17 +367,14 @@ ipcMain.handle('download-ffmpeg', async (event) => {
 
       event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: 75, message: 'Extracting (this may take a moment)...' });
 
-      // Extract to temp, then move binaries
       const extractDir = path.join(tmpDir, 'ffmpeg-extract');
       await extractZip(ffmpegZip, { dir: extractDir });
 
-      // Find the bin folder in extracted content
       const dirs = fs.readdirSync(extractDir);
       const ffmpegDir = dirs.find(d => d.includes('ffmpeg'));
       if (ffmpegDir) {
         const binDir = path.join(extractDir, ffmpegDir, 'bin');
         if (fs.existsSync(binDir)) {
-          // Copy binaries
           for (const file of ['ffmpeg.exe', 'ffprobe.exe']) {
             const src = path.join(binDir, file);
             const dest = path.join(binPath, file);
@@ -374,7 +385,6 @@ ipcMain.handle('download-ffmpeg', async (event) => {
         }
       }
 
-      // Cleanup
       fs.unlinkSync(ffmpegZip);
       fs.rmSync(extractDir, { recursive: true, force: true });
 
@@ -382,7 +392,6 @@ ipcMain.handle('download-ffmpeg', async (event) => {
       return { success: true, path: binPath };
 
     } else {
-      // Linux: tar.xz requires different handling
       return {
         success: false,
         error: 'Linux auto-download not yet implemented. Please download from johnvansickle.com/ffmpeg/',
@@ -395,7 +404,6 @@ ipcMain.handle('download-ffmpeg', async (event) => {
 });
 
 app.whenReady().then(() => {
-  // Check if setup is needed (first run or missing binaries)
   if (needsSetup()) {
     console.log('[VidMix] Setup required - launching setup window');
     createSetupWindow();
@@ -419,7 +427,10 @@ app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') app.quit();
 });
 
-// Vidsencoder IPC handlers
+/**
+ * Opens file dialog to select a video file
+ * @returns {Promise<string|undefined>} Selected file path
+ */
 ipcMain.handle('browse-video-file', async () => {
   const result = await dialog.showOpenDialog({
     properties: ['openFile'],
@@ -428,7 +439,12 @@ ipcMain.handle('browse-video-file', async () => {
   return result.filePaths[0];
 });
 
-// Get media info using ffprobe
+/**
+ * Gets media information using ffprobe
+ * @param {Electron.IpcMainInvokeEvent} event - IPC event
+ * @param {string} filePath - Path to media file
+ * @returns {Promise<Object>} Media info or error
+ */
 ipcMain.handle('get-media-info', async (event, filePath) => {
   if (!ffprobePath) {
     return { error: 'FFprobe not found' };
@@ -455,11 +471,9 @@ ipcMain.handle('get-media-info', async (event, filePath) => {
         const audioStream = data.streams?.find(s => s.codec_type === 'audio');
         const format = data.format;
 
-        // Calculate file size
         const fileSizeBytes = parseInt(format?.size || 0);
         const fileSizeMB = (fileSizeBytes / (1024 * 1024)).toFixed(2);
 
-        // Calculate duration
         const durationSec = parseFloat(format?.duration || 0);
         const hours = Math.floor(durationSec / 3600);
         const minutes = Math.floor((durationSec % 3600) / 60);
@@ -468,14 +482,12 @@ ipcMain.handle('get-media-info', async (event, filePath) => {
           ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
           : `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
-        // Calculate FPS
         let fps = 'N/A';
         if (videoStream?.r_frame_rate) {
           const [num, den] = videoStream.r_frame_rate.split('/');
           fps = (parseInt(num) / parseInt(den)).toFixed(2);
         }
 
-        // Calculate bitrate
         const bitrate = format?.bit_rate
           ? `${(parseInt(format.bit_rate) / 1000).toFixed(0)} kbps`
           : 'N/A';
@@ -510,7 +522,6 @@ ipcMain.handle('browse-output-folder', async () => {
 });
 
 ipcMain.handle('encode-video', async (event, { inputPath, outputPath, videoName, encoder, format, resolution }) => {
-  // Check if FFmpeg is available
   if (!ffmpegPath || !fs.existsSync(ffmpegPath)) {
     event.sender.send('terminal-message', 'Error: FFmpeg not found. Please download it from Settings.');
     throw new Error('FFmpeg not found. Go to Settings to download.');
@@ -518,7 +529,6 @@ ipcMain.handle('encode-video', async (event, { inputPath, outputPath, videoName,
 
   const outputFile = path.join(outputPath, `${videoName}.${format}`);
 
-  // Step 1: Get total duration using ffprobe
   let totalDurationMs = 0;
   try {
     const durationResult = await new Promise((resolve, reject) => {
@@ -539,7 +549,6 @@ ipcMain.handle('encode-video', async (event, { inputPath, outputPath, videoName,
     totalDurationMs = 0;
   }
 
-  // Build encoder-specific arguments
   const encoderArgs = {
     'x264': ['-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709', '-profile:v', 'high'],
     'x265': ['-c:v', 'libx265', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p10le', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709'],
@@ -549,20 +558,16 @@ ipcMain.handle('encode-video', async (event, { inputPath, outputPath, videoName,
     'VP9': ['-c:v', 'libvpx-vp9', '-crf', '30', '-b:v', '0', '-pix_fmt', 'yuv420p']
   }[encoder] || ['-c:v', 'libx264', '-preset', 'medium', '-crf', '18'];
 
-  // Build ffmpeg arguments array
   let ffmpegArgs = ['-hide_banner', '-y', '-i', inputPath];
 
-  // Add progress output to stdout
   ffmpegArgs.push('-progress', 'pipe:1');
 
-  // Add resolution filter if needed
   if (resolution !== 'Keep') {
     ffmpegArgs.push('-vf', `scale=${resolution}:flags=lanczos`);
   }
 
-  // Add encoder arguments and output file
   ffmpegArgs = ffmpegArgs.concat(encoderArgs);
-  ffmpegArgs.push('-c:a', 'copy'); // Copy audio
+  ffmpegArgs.push('-c:a', 'copy');
   ffmpegArgs.push(outputFile);
 
   event.sender.send('terminal-message', `Starting encode: ${encoder} → ${format}`);
@@ -572,11 +577,9 @@ ipcMain.handle('encode-video', async (event, { inputPath, outputPath, videoName,
     const ffmpegProcess = spawn(ffmpegPath, ffmpegArgs);
     let lastProgress = 0;
 
-    // Parse progress from stdout (key=value format)
     ffmpegProcess.stdout.on('data', (data) => {
       const lines = data.toString().split('\n');
       for (const line of lines) {
-        // Parse out_time_us (microseconds)
         if (line.startsWith('out_time_us=')) {
           const outTimeUs = parseInt(line.split('=')[1], 10);
           if (totalDurationMs > 0 && outTimeUs > 0) {
@@ -593,7 +596,6 @@ ipcMain.handle('encode-video', async (event, { inputPath, outputPath, videoName,
             }
           }
         }
-        // Parse speed for ETA calculation
         if (line.startsWith('speed=')) {
           const speedStr = line.split('=')[1];
           if (speedStr && speedStr !== 'N/A') {
@@ -614,10 +616,8 @@ ipcMain.handle('encode-video', async (event, { inputPath, outputPath, videoName,
       }
     });
 
-    // Log stderr (FFmpeg logs to stderr)
     ffmpegProcess.stderr.on('data', (data) => {
       const message = data.toString().trim();
-      // Only log important messages, not every frame
       if (message.includes('Error') || message.includes('error') ||
         message.includes('Stream') || message.includes('encoder')) {
         event.sender.send('terminal-message', message);
@@ -642,7 +642,10 @@ ipcMain.handle('encode-video', async (event, { inputPath, outputPath, videoName,
   });
 });
 
-// YTDownloader IPC handlers
+/**
+ * Opens directory dialog for YTDownloader
+ * @returns {Promise<Electron.OpenDialogReturnValue>}
+ */
 ipcMain.handle('open-dialog', async () => {
   const result = await dialog.showOpenDialog({ properties: ['openDirectory'] });
   return result;
@@ -659,7 +662,6 @@ ipcMain.handle('fetch-formats', (event, url) => {
       output += data.toString();
     });
 
-    // Collect stderr but don't reject immediately (yt-dlp sends warnings to stderr)
     ytDlp.stderr.on('data', data => {
       errorOutput += data.toString();
     });
@@ -684,7 +686,6 @@ ipcMain.handle('download', (event, args) => {
   let ytdlpArgs;
 
   if (autoMode) {
-    // Auto mode: Best quality with recommended options
     ytdlpArgs = [
       '--no-playlist',
       '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best',
@@ -696,7 +697,6 @@ ipcMain.handle('download', (event, args) => {
       url
     ];
   } else {
-    // Manual mode: Use format IDs
     let formatStr;
 
     if (videoEnabled && audioEnabled) {
@@ -756,7 +756,10 @@ ipcMain.handle('download', (event, args) => {
   });
 });
 
-// Extract IPC handlers
+/**
+ * Opens file dialog for frame extraction input
+ * @returns {Promise<string|undefined>} Selected file path
+ */
 ipcMain.handle('browse-input', async () => {
   const result = await dialog.showOpenDialog({
     properties: ['openFile'],

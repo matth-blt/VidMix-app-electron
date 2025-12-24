@@ -90,8 +90,16 @@ export const template = `
   </div>
 `;
 
+/** @type {string} Currently selected video codec */
 let selectedCodec = 'x264';
 
+/**
+ * Initializes the Vidsencoder module
+ * @param {Function} log - Logging function
+ * @param {Function} addQueueItem - Function to add items to queue
+ * @param {Function} updateMediaInfo - Function to update media info panel
+ * @param {Function} getFileName - Function to extract filename from path
+ */
 export function init(log, addQueueItem, updateMediaInfo, getFileName) {
   // Codec selection
   const codecs = document.querySelectorAll('.codec');

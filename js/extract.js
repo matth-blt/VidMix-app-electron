@@ -63,9 +63,19 @@ export const template = `
   </div>
 `;
 
+/** @type {string} Currently selected image format */
 let selectedFormat = 'PNG';
+
+/** @type {boolean} Whether to create a subfolder for frames */
 let createFolder = true;
 
+/**
+ * Initializes the Extract module
+ * @param {Function} log - Logging function
+ * @param {Function} addQueueItem - Function to add items to queue
+ * @param {Function} updateMediaInfo - Function to update media info panel
+ * @param {Function} getFileName - Function to extract filename from path
+ */
 export function init(log, addQueueItem, updateMediaInfo, getFileName) {
   const folderNameInput = document.getElementById('folder-name');
 

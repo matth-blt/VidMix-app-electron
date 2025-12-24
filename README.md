@@ -1,110 +1,47 @@
 ![VidMix Banner](https://github.com/user-attachments/assets/20b08280-e972-41db-af05-7f7e5fdec0eb)
 
-# VidMix
+# 🎬 VidMix
 
-**A modern Electron application for video encoding, YouTube downloading, and frame extraction.**
-
-[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+[![Français](https://img.shields.io/badge/lang-Français-blue.svg)](README_FR.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Electron](https://img.shields.io/badge/Electron-33.x-47848F?logo=electron)](https://www.electronjs.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js)](https://nodejs.org/)
 
-## ✨ Features
+A modern Electron application for video encoding, YouTube downloading, and frame extraction.
 
-### 🎬 Vidsencoder
-Encode and convert video files with customizable options:
-- Multiple encoder support (H.264, H.265/HEVC, VP9, AV1)
-- Quality and bitrate control
-- Resolution presets
-- Real-time encoding progress
+## 📋 Features
 
-### 📥 YTDownloader
-Download videos from YouTube with advanced options:
-- Fetch available formats (video/audio)
-- **Auto Best Quality** mode - downloads best video + audio merged
-- Separate video/audio download toggles
-- Embedded metadata, thumbnails, and chapters
+- ✅ **Video Encoding** - Encode videos with H.264, H.265, VP9, AV1, ProRes, FFV1
+- ✅ **YouTube Downloading** - Download videos with yt-dlp (auto best quality mode)
+- ✅ **Frame Extraction** - Extract frames as PNG, TIFF, or JPEG
+- ✅ **Media Info** - Detailed metadata analysis via FFprobe
+- ✅ **First-Run Setup** - Automatic binary detection and one-click download
+- ✅ **Cross-Platform** - macOS, Windows, and Linux support
 
-### 🖼️ Frame Extractor
-Extract frames from videos:
-- Multiple output formats (PNG, JPG, BMP, TIFF)
-- Custom frame rate selection
-- Optional output folder creation
+## 🚀 Installation
 
-### ℹ️ Media Info
-View detailed video metadata:
-- Duration, resolution, codecs
-- FPS, bitrate, file size
-- Pixel format information
-
-### ⚡ First-Run Setup Wizard
-Automatic binary detection and installation:
-- Detects system-installed FFmpeg, FFprobe, and yt-dlp
-- One-click download for missing binaries
-- Animated setup wizard with progress tracking
-
-## 📦 Installation
-
-### From Releases
-Download the installer from the [Releases](https://github.com/matth-blt/VidMix-app-electron/releases) page:
+### For Users (Installers)
+Download the latest release from the [Releases](https://github.com/matth-blt/VidMix-app-electron/releases) page:
 - **macOS**: `.dmg` installer
-- **Windows**: `.exe` installer
-- **Linux**: `.deb` or `.rpm` package
+- **Windows**: `.exe` NSIS installer (choose installation directory)
+- **Linux**: `.deb`, `.rpm`, or `AppImage`
 
-### Requirements
-The application requires the following binaries (automatically downloaded if missing):
-- **FFmpeg** - Video encoding/decoding
-- **FFprobe** - Media information extraction
-- **yt-dlp** - YouTube downloading
+### For Developers
 
-## 🚀 Usage
+#### Prerequisites
+- **Node.js 18+**
+- **npm**
 
-### Vidsencoder
-1. Click **Import** to select your video file
-2. Choose your encoder and quality settings
-3. Set output path and click **Encode**
-
-### YTDownloader
-1. Paste a YouTube URL
-2. Toggle **Auto Best Quality** for automatic best format, or:
-   - Click **Fetch Formats** to see available formats
-   - Select video and audio format IDs
-3. Set output path and click **Download**
-
-### Frame Extractor
-1. Click **Import** to select your video
-2. Choose output format and frame rate
-3. Enable **Create Folder** to organize frames
-4. Click **Extract**
-
-## 🛠️ Development
-
-### Prerequisites
-- Node.js 18+
-- npm or yarn
-
-### Setup
+#### Setup
 ```bash
-# Clone the repository
 git clone https://github.com/matth-blt/VidMix-app-electron.git
 cd VidMix-app-electron
-
-# Install dependencies
 npm install
-
-# Start development
 npm start
 ```
 
-### Available Scripts
-| Command | Description |
-|---------|-------------|
-| `npm start` | Start the app in development mode |
-| `npm test` | Run unit tests with Jest |
-| `npm run preview-setup` | Preview the setup wizard |
-| `npm run package` | Package the app for distribution |
-| `npm run make` | Create platform-specific installers |
+## 📦 Project Structure
 
-### Project Structure
 ```
 VidMix-app-electron/
 ├── main.js              # Electron main process
@@ -114,34 +51,89 @@ VidMix-app-electron/
 ├── setup.html           # Setup wizard UI
 ├── setup-renderer.js    # Setup wizard logic
 ├── setup-preload.js     # Setup preload script
-├── css/                 # Stylesheets
-│   ├── app.css          # Main application styles
+├── forge.config.js      # Electron Forge config
+├── electron-builder.json # Electron Builder config
+├── css/
+│   ├── app.css          # Main styles
 │   ├── setup.css        # Setup wizard styles
-│   └── mediainfo.css    # Media info panel styles
-├── js/                  # Module scripts
-│   ├── settings.js      # Settings page logic
-│   ├── ytdownloader.js  # YouTube downloader logic
-│   └── extract.js       # Frame extractor logic
-└── tests/               # Unit tests
-    ├── setup.test.js    # Setup wizard tests
+│   ├── splash.css       # Splash screen styles
+│   ├── panel.css        # Panel component styles
+│   └── mediainfo.css    # Media info styles
+├── js/
+│   ├── vidsencoder.js   # Video encoder module
+│   ├── ytdownloader.js  # YouTube downloader module
+│   ├── extract.js       # Frame extractor module
+│   └── settings.js      # Settings module
+└── tests/
+    ├── setup.test.js    # Unit tests
     └── preview-setup.js # Setup preview script
 ```
 
+## 🎨 Features in Detail
+
+### 1️⃣ Vidsencoder
+Encode videos with multiple codecs and containers.
+- **Codecs**: x264, x265, AV1, VP9, ProRes, FFV1 (Lossless)
+- **Containers**: MKV, MP4, MOV, WebM
+- **Options**: Resolution scaling, quality presets
+- **Progress**: Real-time encoding progress with ETA
+
+### 2️⃣ YTDownloader
+Download YouTube videos with advanced options.
+- **Auto Mode**: Best video + audio automatically merged
+- **Manual Mode**: Choose specific video/audio formats
+- **Toggles**: Video only, audio only, or both
+- **Metadata**: Embedded thumbnails, chapters, subtitles
+
+### 3️⃣ Frame Extractor
+Extract all frames from a video.
+- **Formats**: PNG (lossless), TIFF (archive), JPEG (lightweight)
+- **Organization**: Auto-create folder with video name
+- **Quality**: High-quality scaling filters
+
+### 4️⃣ Media Info
+Analyze media files with FFprobe.
+- Resolution, duration, FPS
+- Video/audio codecs
+- Bitrate, file size, pixel format
+
+## 🛠️ Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm start` | Start in development mode |
+| `npm test` | Run Jest unit tests |
+| `npm run preview-setup` | Preview setup wizard |
+| `npm run package` | Package app (Electron Forge) |
+| `npm run make` | Create installers (Electron Forge) |
+| `npm run build` | Build all platforms (Electron Builder) |
+| `npm run build:mac` | Build macOS (.dmg, .zip) |
+| `npm run build:win` | Build Windows (NSIS .exe) |
+| `npm run build:linux` | Build Linux (.deb, .rpm, AppImage) |
+
+## 🔧 Required Binaries
+
+VidMix automatically detects and downloads these binaries:
+- **FFmpeg** - Video encoding/decoding
+- **FFprobe** - Media analysis
+- **yt-dlp** - YouTube downloading
+
+Binaries can be system-installed (Homebrew, apt, etc.) or downloaded via Settings.
+
 ## 🤝 Contributing
 
-Contributions are welcome! Please:
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create a feature branch (`git checkout -b feature/amazing`)
+3. Commit changes (`git commit -m 'Add feature'`)
+4. Push to branch (`git push origin feature/amazing`)
 5. Open a Pull Request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) for details.
 
 ## 🙏 Acknowledgments
 
 - [FFmpeg](https://ffmpeg.org/) - Video processing
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) - YouTube downloading
-- [Electron](https://www.electronjs.org/) - Desktop app framework
+- [Electron](https://www.electronjs.org/) - Desktop framework

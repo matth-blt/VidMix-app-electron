@@ -3,7 +3,7 @@
  * Handles first-run setup wizard logic
  */
 
-// Screen elements
+/** Screen elements */
 const screens = {
     splash: document.getElementById('screen-splash'),
     requirements: document.getElementById('screen-requirements')
@@ -11,7 +11,7 @@ const screens = {
 
 const splashStatus = document.getElementById('splash-status');
 
-// Binary status elements
+/** Binary status elements */
 const binaries = ['ffmpeg', 'ffprobe', 'ytdlp'];
 const binaryElements = {};
 
@@ -28,24 +28,30 @@ binaries.forEach(name => {
     };
 });
 
-// Action buttons
+/** Action buttons */
 const btnSkip = document.getElementById('btn-skip');
 const btnDownloadAll = document.getElementById('btn-download-all');
 const btnContinue = document.getElementById('btn-continue');
 const btnClose = document.getElementById('btn-close');
 
-// State
+/** State */
 let binariesStatus = {};
 let missingBinaries = [];
 let currentlyDownloading = null;
 
-// ===== Screen Navigation =====
+/**
+ * Shows a specific screen and hides others
+ * @param {string} screenName - Name of screen to show
+ */
 function showScreen(screenName) {
     Object.values(screens).forEach(s => s.classList.remove('active'));
     screens[screenName].classList.add('active');
 }
 
-// ===== Initialize =====
+/**
+ * Initializes the setup wizard
+ * @async
+ */
 async function init() {
     // Show splash for at least 1.5 seconds
     splashStatus.textContent = 'Checking system...';
@@ -61,7 +67,10 @@ async function init() {
     updateUI();
 }
 
-// ===== Check Binaries =====
+/**
+ * Checks the status of all required binaries
+ * @async
+ */
 async function checkBinaries() {
     try {
         binariesStatus = await window.electron.checkBinaries();
@@ -88,7 +97,9 @@ async function checkBinaries() {
     }
 }
 
-// ===== Update UI based on binary status =====
+/**
+ * Updates UI based on binary availability
+ */
 function updateUI() {
     if (missingBinaries.length > 0) {
         btnDownloadAll.style.display = 'flex';
@@ -99,6 +110,12 @@ function updateUI() {
     }
 }
 
+/**
+ * Marks a binary as found in the UI
+ * @param {string} name - Binary name
+ * @param {string} path - Binary path
+ * @param {string} source - Source type (System/Local)
+ */
 function markAsFound(name, path, source) {
     const el = binaryElements[name];
     if (!el) return;
@@ -115,6 +132,10 @@ function markAsFound(name, path, source) {
     el.check.style.display = 'flex';
 }
 
+/**
+ * Marks a binary as missing in the UI
+ * @param {string} name - Binary name
+ */
 function markAsMissing(name) {
     const el = binaryElements[name];
     if (!el) return;
@@ -131,6 +152,11 @@ function markAsMissing(name) {
     el.check.style.display = 'none';
 }
 
+/**
+ * Shows inline progress bar for a binary
+ * @param {string} name - Binary name
+ * @param {boolean} [isWaiting=false] - Show waiting state
+ */
 function showInlineProgress(name, isWaiting = false) {
     const el = binaryElements[name];
     if (!el) return;
@@ -145,6 +171,12 @@ function showInlineProgress(name, isWaiting = false) {
     el.status.classList.remove('found', 'missing');
 }
 
+/**
+ * Updates the inline progress bar
+ * @param {string} name - Binary name
+ * @param {number} percent - Progress percentage
+ * @param {string} [message] - Optional status message
+ */
 function updateInlineProgress(name, percent, message) {
     const el = binaryElements[name];
     if (!el) return;
@@ -155,6 +187,10 @@ function updateInlineProgress(name, percent, message) {
     el.status.textContent = message || 'Downloading...';
 }
 
+/**
+ * Hides the inline progress bar
+ * @param {string} name - Binary name
+ */
 function hideInlineProgress(name) {
     const el = binaryElements[name];
     if (!el) return;
@@ -162,7 +198,11 @@ function hideInlineProgress(name) {
     el.progress.style.display = 'none';
 }
 
-// ===== Download Functions =====
+/**
+ * Downloads a specific binary
+ * @async
+ * @param {string} name - Binary name to download
+ */
 async function downloadBinary(name) {
     const el = binaryElements[name];
     currentlyDownloading = name;
@@ -214,6 +254,10 @@ async function downloadBinary(name) {
     currentlyDownloading = null;
 }
 
+/**
+ * Downloads all missing binaries sequentially
+ * @async
+ */
 async function downloadAll() {
     btnDownloadAll.disabled = true;
     btnDownloadAll.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
@@ -247,7 +291,7 @@ async function downloadAll() {
     updateUI();
 }
 
-// ===== Event Listeners =====
+/** Event Listeners */
 btnClose.addEventListener('click', () => {
     window.electron.close();
 });
@@ -264,19 +308,19 @@ btnDownloadAll.addEventListener('click', () => {
     downloadAll();
 });
 
-// Individual download buttons
+/** Individual download buttons */
 binaries.forEach(name => {
     binaryElements[name].downloadBtn.addEventListener('click', () => {
         downloadBinary(name);
     });
 });
 
-// Listen to download progress
+/** Listen to download progress */
 window.electron.onBinaryProgress?.((data) => {
     if (currentlyDownloading && data.progress !== undefined) {
         updateInlineProgress(currentlyDownloading, data.progress, data.message);
     }
 });
 
-// Start
+/** Start */
 init();

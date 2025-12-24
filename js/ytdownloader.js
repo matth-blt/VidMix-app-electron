@@ -88,10 +88,20 @@ export const template = `
   </div>
 `;
 
+/** @type {boolean} Auto mode enabled (best quality) */
 let autoMode = true;
+
+/** @type {boolean} Video download enabled */
 let videoEnabled = true;
+
+/** @type {boolean} Audio download enabled */
 let audioEnabled = true;
 
+/**
+ * Initializes the YTDownloader module
+ * @param {Function} log - Logging function
+ * @param {Function} addQueueItem - Function to add items to queue
+ */
 export function init(log, addQueueItem) {
   const manualOptions = document.getElementById('manual-options');
   const fetchBtn = document.getElementById('fetch-formats');

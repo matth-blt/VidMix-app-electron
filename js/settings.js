@@ -48,6 +48,11 @@ export const template = `
   </div>
 `;
 
+/**
+ * Initializes the Settings module
+ * @async
+ * @param {Function} log - Logging function
+ */
 export async function init(log) {
   // Check binaries status
   await updateBinaryStatus(log);
@@ -135,6 +140,11 @@ export async function init(log) {
   log('Settings loaded.', 'info');
 }
 
+/**
+ * Updates the binary status display in the UI
+ * @async
+ * @param {Function} log - Logging function
+ */
 async function updateBinaryStatus(log) {
   try {
     const binaries = await window.electron.checkBinaries();
