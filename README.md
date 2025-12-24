@@ -1,4 +1,4 @@
-![VidMix Banner](https://github.com/user-attachments/assets/db444318-d92c-408d-8e99-efd2a3f07996)
+![VidMix Banner](https://github.com/user-attachments/assets/20b08280-e972-41db-af05-7f7e5fdec0eb)
 
 # VidMix
 
@@ -138,7 +138,7 @@ Contributions are welcome! Please:
 
 ## 📄 License
 
-This project is licensed under the ISC License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
