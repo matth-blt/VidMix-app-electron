@@ -10,46 +10,56 @@ export const template = `
       <h2>Extract Frames</h2>
     </div>
     
-    <div class="form-group">
-      <label>Input Video</label>
-      <div class="input-row">
-        <input type="text" class="form-input" id="input-file" disabled placeholder="Select a video file...">
-        <button class="btn" id="browse-input"><i class="fas fa-folder-open"></i> Browse</button>
-      </div>
-    </div>
-    
-    <div class="form-group">
-      <label>Output Path</label>
-      <div class="input-row">
-        <input type="text" class="form-input" id="output-folder" disabled placeholder="Select output folder...">
-        <button class="btn" id="browse-output"><i class="fas fa-folder-open"></i> Browse</button>
-      </div>
-    </div>
-    
-    <!-- Create Folder Option -->
-    <div class="form-group">
-      <div class="toggle-item">
-        <span class="toggle-label"><i class="fas fa-folder-plus"></i> Create Folder</span>
-        <div class="toggle-switch">
-          <input type="checkbox" id="toggle-folder" class="toggle-input" checked>
-          <label for="toggle-folder" class="toggle-track"></label>
+    <div class="panel">
+      <!-- Input Video Row -->
+      <div class="panel-row">
+        <label class="panel-label">Input video</label>
+        <div class="panel-value">
+          <input type="text" class="panel-input" id="input-file" disabled placeholder="Select a video file...">
+          <button class="panel-btn" id="browse-input"><i class="fas fa-ellipsis-h"></i></button>
         </div>
-        <input type="text" class="form-input format-input folder-name-input" id="folder-name" placeholder="Folder name (from video name)">
+      </div>
+      
+      <!-- Output Path Row -->
+      <div class="panel-row">
+        <label class="panel-label">Output path</label>
+        <div class="panel-value">
+          <input type="text" class="panel-input" id="output-folder" disabled placeholder="Select output folder...">
+          <button class="panel-btn" id="browse-output"><i class="fas fa-ellipsis-h"></i></button>
+        </div>
+      </div>
+      
+      <!-- Create Folder Row -->
+      <div class="panel-row">
+        <label class="panel-label">Create folder</label>
+        <div class="panel-value">
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle-folder" class="toggle-input" checked>
+            <label for="toggle-folder" class="toggle-track"></label>
+          </div>
+          <input type="text" class="panel-input" id="folder-name" placeholder="Folder name (from video name)">
+        </div>
+      </div>
+      
+      <!-- Image Format Row -->
+      <div class="panel-row">
+        <label class="panel-label">Image format</label>
+        <div class="panel-value">
+          <div class="codec-grid codec-grid-3">
+            <div class="codec active" data-format="PNG">PNG</div>
+            <div class="codec" data-format="TIFF">TIFF</div>
+            <div class="codec" data-format="JPEG">JPEG</div>
+          </div>
+        </div>
       </div>
     </div>
     
-    <div class="form-group">
-      <label>Image Format</label>
-      <div class="codec-row">
-        <div class="codec active" data-format="PNG">PNG</div>
-        <div class="codec" data-format="TIFF">TIFF</div>
-        <div class="codec" data-format="JPEG">JPEG</div>
-      </div>
+    <!-- Bottom Actions -->
+    <div class="panel-actions">
+      <button class="btn btn-action" id="add-to-queue">
+        <i class="fas fa-bars-staggered"></i> Add to queue
+      </button>
     </div>
-    
-    <button class="btn btn-action" id="add-to-queue">
-      <i class="fas fa-bars-staggered"></i> Add to queue
-    </button>
   </div>
 `;
 

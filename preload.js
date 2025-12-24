@@ -67,5 +67,10 @@ contextBridge.exposeInMainWorld('electron', {
   downloadFfmpeg: () => ipcRenderer.invoke('download-ffmpeg'),
   onBinaryProgress: (callback) => {
     ipcRenderer.on('download-binary-progress', (event, data) => callback(data));
+  },
+
+  // Encoding progress listener
+  onEncodingProgress: (callback) => {
+    ipcRenderer.on('encoding-progress', (event, data) => callback(data));
   }
 });

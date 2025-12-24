@@ -489,36 +489,126 @@ ipcMain.handle('encode-video', async (event, { inputPath, outputPath, videoName,
 
   const outputFile = path.join(outputPath, `${videoName}.${format}`);
 
+  // Step 1: Get total duration using ffprobe
+  let totalDurationMs = 0;
+  try {
+    const durationResult = await new Promise((resolve, reject) => {
+      execFile(ffprobePath, [
+        '-v', 'error',
+        '-show_entries', 'format=duration',
+        '-of', 'default=noprint_wrappers=1:nokey=1',
+        inputPath
+      ], (error, stdout) => {
+        if (error) reject(error);
+        else resolve(stdout.trim());
+      });
+    });
+    totalDurationMs = parseFloat(durationResult) * 1000000; // Convert to microseconds
+    event.sender.send('terminal-message', `Duration: ${(totalDurationMs / 1000000).toFixed(2)}s`);
+  } catch (e) {
+    event.sender.send('terminal-message', `Warning: Could not get duration, progress will be estimated`);
+    totalDurationMs = 0;
+  }
+
   // Build encoder-specific arguments
   const encoderArgs = {
-    'x264': ['-c:v', 'libx264', '-b:v', '35M', '-g', '120', '-keyint_min', '120', '-sc_threshold', '0', '-pix_fmt', 'yuv420p', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709', '-profile:v', 'high', '-bf', '2', '-b_strategy', '2'],
-    'x265': ['-c:v', 'libx265', '-b:v', '30M', '-g', '120', '-keyint_min', '120', '-sc_threshold', '0', '-pix_fmt', 'yuv420p10le', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709'],
+    'x264': ['-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709', '-profile:v', 'high'],
+    'x265': ['-c:v', 'libx265', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p10le', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709'],
     'ProRes': ['-c:v', 'prores_ks', '-profile:v', '4', '-vendor', 'apl0', '-bits_per_mb', '8000', '-pix_fmt', 'yuva444p10le'],
     'FFV1': ['-c:v', 'ffv1', '-coder', '2', '-context', '1', '-level', '3', '-slices', '12', '-g', '1'],
-    'AV1': ['-c:v', 'libsvtav1', '-b:v', '30M', '-g', '120', '-keyint_min', '120', '-sc_threshold', '0', '-pix_fmt', 'yuv420p', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709']
-  }[encoder];
+    'AV1': ['-c:v', 'libsvtav1', '-preset', '6', '-crf', '25', '-pix_fmt', 'yuv420p', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709'],
+    'VP9': ['-c:v', 'libvpx-vp9', '-crf', '30', '-b:v', '0', '-pix_fmt', 'yuv420p']
+  }[encoder] || ['-c:v', 'libx264', '-preset', 'medium', '-crf', '18'];
 
-  // Build ffmpeg arguments array (secure - no shell interpolation)
+  // Build ffmpeg arguments array
   let ffmpegArgs = ['-hide_banner', '-y', '-i', inputPath];
 
-  // Add resolution filter if needed (corrected syntax: scale=width:height:flags=lanczos)
+  // Add progress output to stdout
+  ffmpegArgs.push('-progress', 'pipe:1');
+
+  // Add resolution filter if needed
   if (resolution !== 'Keep') {
     ffmpegArgs.push('-vf', `scale=${resolution}:flags=lanczos`);
   }
 
   // Add encoder arguments and output file
   ffmpegArgs = ffmpegArgs.concat(encoderArgs);
+  ffmpegArgs.push('-c:a', 'copy'); // Copy audio
   ffmpegArgs.push(outputFile);
 
+  event.sender.send('terminal-message', `Starting encode: ${encoder} → ${format}`);
+  event.sender.send('encoding-progress', { progress: 0, status: 'Starting...', eta: '' });
+
   return new Promise((resolve, reject) => {
-    const ffmpegProcess = execFile(ffmpegPath, ffmpegArgs, { maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
-      if (error) {
-        event.sender.send('terminal-message', `Erreur : ${error.message}`);
-        reject(error.message);
-        return;
+    const ffmpegProcess = spawn(ffmpegPath, ffmpegArgs);
+    let lastProgress = 0;
+
+    // Parse progress from stdout (key=value format)
+    ffmpegProcess.stdout.on('data', (data) => {
+      const lines = data.toString().split('\n');
+      for (const line of lines) {
+        // Parse out_time_us (microseconds)
+        if (line.startsWith('out_time_us=')) {
+          const outTimeUs = parseInt(line.split('=')[1], 10);
+          if (totalDurationMs > 0 && outTimeUs > 0) {
+            const progress = Math.min(100, Math.round((outTimeUs / totalDurationMs) * 100));
+            if (progress !== lastProgress) {
+              lastProgress = progress;
+              const timeProcessed = (outTimeUs / 1000000).toFixed(1);
+              const totalTime = (totalDurationMs / 1000000).toFixed(1);
+              event.sender.send('encoding-progress', {
+                progress,
+                status: `Encoding... ${timeProcessed}s / ${totalTime}s`,
+                eta: ''
+              });
+            }
+          }
+        }
+        // Parse speed for ETA calculation
+        if (line.startsWith('speed=')) {
+          const speedStr = line.split('=')[1];
+          if (speedStr && speedStr !== 'N/A') {
+            const speed = parseFloat(speedStr.replace('x', ''));
+            if (speed > 0 && totalDurationMs > 0 && lastProgress < 100) {
+              const remainingMs = totalDurationMs * (1 - lastProgress / 100);
+              const etaSeconds = Math.round(remainingMs / 1000000 / speed);
+              const etaMin = Math.floor(etaSeconds / 60);
+              const etaSec = etaSeconds % 60;
+              event.sender.send('encoding-progress', {
+                progress: lastProgress,
+                status: `Encoding... ${lastProgress}%`,
+                eta: `ETA: ${etaMin}m ${etaSec}s (${speedStr})`
+              });
+            }
+          }
+        }
       }
-      event.sender.send('terminal-message', `Succès : Encodage terminé`);
-      resolve('Encodage terminé');
+    });
+
+    // Log stderr (FFmpeg logs to stderr)
+    ffmpegProcess.stderr.on('data', (data) => {
+      const message = data.toString().trim();
+      // Only log important messages, not every frame
+      if (message.includes('Error') || message.includes('error') ||
+        message.includes('Stream') || message.includes('encoder')) {
+        event.sender.send('terminal-message', message);
+      }
+    });
+
+    ffmpegProcess.on('close', (code) => {
+      if (code === 0) {
+        event.sender.send('encoding-progress', { progress: 100, status: 'Complete!', eta: '' });
+        event.sender.send('terminal-message', `✓ Encoding complete: ${outputFile}`);
+        resolve('Encoding complete');
+      } else {
+        event.sender.send('terminal-message', `✗ Encoding failed with code ${code}`);
+        reject(`Encoding failed with code ${code}`);
+      }
+    });
+
+    ffmpegProcess.on('error', (err) => {
+      event.sender.send('terminal-message', `✗ Error: ${err.message}`);
+      reject(err.message);
     });
   });
 });

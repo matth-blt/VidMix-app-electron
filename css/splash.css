@@ -1,0 +1,88 @@
+/* ===== Splash Screen Overlay ===== */
+
+.splash-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-main, #0d0d14);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.splash-overlay.sweep-out {
+    transform: translateX(-100%);
+}
+
+.splash-overlay.hidden {
+    display: none;
+}
+
+.splash-content {
+    text-align: center;
+}
+
+.splash-status {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 32px;
+    animation: pulse-splash 1.5s ease-in-out infinite;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+@keyframes pulse-splash {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* ===== VIDMIX Loader ===== */
+.loader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.letter {
+    display: inline-block;
+}
+
+.dash {
+    animation: dashArray 2s ease-in-out infinite,
+        dashOffset 2s linear infinite;
+}
+
+@keyframes dashArray {
+    0% {
+        stroke-dasharray: 0 1 359 0;
+    }
+
+    50% {
+        stroke-dasharray: 0 359 1 0;
+    }
+
+    100% {
+        stroke-dasharray: 359 1 0 0;
+    }
+}
+
+@keyframes dashOffset {
+    0% {
+        stroke-dashoffset: 365;
+    }
+
+    100% {
+        stroke-dashoffset: 5;
+    }
+}

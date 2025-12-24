@@ -20,16 +20,13 @@ binaries.forEach(name => {
         card: document.getElementById(`card-${name}`),
         status: document.getElementById(`status-${name}`),
         path: document.getElementById(`path-${name}`),
+        progress: document.getElementById(`progress-${name}`),
+        progressFill: document.getElementById(`progress-fill-${name}`),
+        progressText: document.getElementById(`progress-text-${name}`),
         downloadBtn: document.getElementById(`download-${name}`),
         check: document.getElementById(`check-${name}`)
     };
 });
-
-// Progress elements
-const progressContainer = document.getElementById('download-progress');
-const progressLabel = document.getElementById('progress-label');
-const progressFill = document.getElementById('progress-fill');
-const progressPercent = document.getElementById('progress-percent');
 
 // Action buttons
 const btnSkip = document.getElementById('btn-skip');
@@ -40,6 +37,7 @@ const btnClose = document.getElementById('btn-close');
 // State
 let binariesStatus = {};
 let missingBinaries = [];
+let currentlyDownloading = null;
 
 // ===== Screen Navigation =====
 function showScreen(screenName) {
@@ -111,6 +109,8 @@ function markAsFound(name, path, source) {
     el.status.classList.add('found');
     el.status.classList.remove('missing');
     el.path.textContent = path || '';
+    el.path.style.display = 'block';
+    el.progress.style.display = 'none';
     el.downloadBtn.style.display = 'none';
     el.check.style.display = 'flex';
 }
@@ -125,17 +125,50 @@ function markAsMissing(name) {
     el.status.classList.add('missing');
     el.status.classList.remove('found');
     el.path.textContent = '';
+    el.path.style.display = 'none';
+    el.progress.style.display = 'none';
     el.downloadBtn.style.display = 'flex';
     el.check.style.display = 'none';
+}
+
+function showInlineProgress(name, isWaiting = false) {
+    const el = binaryElements[name];
+    if (!el) return;
+
+    el.path.style.display = 'none';
+    el.downloadBtn.style.display = 'none';
+    el.progress.style.display = 'flex';
+    el.progressFill.style.width = '0%';
+    el.progressFill.classList.toggle('waiting', isWaiting);
+    el.progressText.textContent = isWaiting ? 'Waiting...' : '0%';
+    el.status.textContent = isWaiting ? 'Waiting...' : 'Downloading...';
+    el.status.classList.remove('found', 'missing');
+}
+
+function updateInlineProgress(name, percent) {
+    const el = binaryElements[name];
+    if (!el) return;
+
+    el.progressFill.classList.remove('waiting');
+    el.progressFill.style.width = `${percent}%`;
+    el.progressText.textContent = `${percent}%`;
+    el.status.textContent = 'Downloading...';
+}
+
+function hideInlineProgress(name) {
+    const el = binaryElements[name];
+    if (!el) return;
+
+    el.progress.style.display = 'none';
 }
 
 // ===== Download Functions =====
 async function downloadBinary(name) {
     const el = binaryElements[name];
-    el.downloadBtn.disabled = true;
-    el.downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    currentlyDownloading = name;
 
-    showProgress(`Downloading ${name}...`);
+    // Show inline progress for this binary
+    showInlineProgress(name, false);
 
     try {
         let result;
@@ -146,50 +179,72 @@ async function downloadBinary(name) {
         }
 
         if (result && result.success) {
+            hideInlineProgress(name);
             markAsFound(name, result.path, 'Local');
             missingBinaries = missingBinaries.filter(b => b !== name);
+
+            // If ffmpeg was downloaded, also mark ffprobe as found (they come together)
+            if (name === 'ffmpeg' && result.ffprobePath) {
+                missingBinaries = missingBinaries.filter(b => b !== 'ffprobe');
+                hideInlineProgress('ffprobe');
+                markAsFound('ffprobe', result.ffprobePath, 'Local');
+            }
+            if (name === 'ffprobe' && result.ffmpegPath) {
+                missingBinaries = missingBinaries.filter(b => b !== 'ffmpeg');
+                hideInlineProgress('ffmpeg');
+                markAsFound('ffmpeg', result.ffmpegPath, 'Local');
+            }
+
             updateUI();
         } else {
+            hideInlineProgress(name);
             el.status.textContent = `Error: ${result?.error || 'Download failed'}`;
-            el.downloadBtn.disabled = false;
+            el.status.classList.add('missing');
+            el.downloadBtn.style.display = 'flex';
             el.downloadBtn.innerHTML = '<i class="fas fa-download"></i> Retry';
         }
     } catch (e) {
+        hideInlineProgress(name);
         el.status.textContent = `Error: ${e.message}`;
-        el.downloadBtn.disabled = false;
+        el.status.classList.add('missing');
+        el.downloadBtn.style.display = 'flex';
         el.downloadBtn.innerHTML = '<i class="fas fa-download"></i> Retry';
     }
 
-    hideProgress();
+    currentlyDownloading = null;
 }
 
 async function downloadAll() {
     btnDownloadAll.disabled = true;
     btnDownloadAll.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
 
-    for (const name of [...missingBinaries]) {
+    // Show waiting state for all missing binaries
+    const toDownload = [...missingBinaries];
+    toDownload.forEach((name, index) => {
+        showInlineProgress(name, index > 0); // First one is active, others are waiting
+    });
+
+    // Download one by one
+    for (let i = 0; i < toDownload.length; i++) {
+        const name = toDownload[i];
+
+        // Skip if already downloaded (e.g., ffprobe comes with ffmpeg)
+        if (!missingBinaries.includes(name)) continue;
+
+        // Update waiting states - current one is now active
+        toDownload.forEach((n, idx) => {
+            if (idx > i && missingBinaries.includes(n)) {
+                showInlineProgress(n, true);
+            }
+        });
+
+        showInlineProgress(name, false);
         await downloadBinary(name);
     }
 
     btnDownloadAll.disabled = false;
     btnDownloadAll.innerHTML = '<i class="fas fa-download"></i> Download All';
     updateUI();
-}
-
-function showProgress(label) {
-    progressLabel.textContent = label;
-    progressFill.style.width = '0%';
-    progressPercent.textContent = '0%';
-    progressContainer.style.display = 'block';
-}
-
-function updateProgress(percent) {
-    progressFill.style.width = `${percent}%`;
-    progressPercent.textContent = `${percent}%`;
-}
-
-function hideProgress() {
-    progressContainer.style.display = 'none';
 }
 
 // ===== Event Listeners =====
@@ -218,11 +273,8 @@ binaries.forEach(name => {
 
 // Listen to download progress
 window.electron.onBinaryProgress?.((data) => {
-    if (data.progress !== undefined) {
-        updateProgress(data.progress);
-    }
-    if (data.message) {
-        progressLabel.textContent = data.message;
+    if (currentlyDownloading && data.progress !== undefined) {
+        updateInlineProgress(currentlyDownloading, data.progress);
     }
 });
 

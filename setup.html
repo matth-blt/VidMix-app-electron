@@ -100,6 +100,12 @@
                             <span class="binary-name">FFmpeg</span>
                             <span class="binary-status" id="status-ffmpeg">Checking...</span>
                             <span class="binary-path" id="path-ffmpeg"></span>
+                            <div class="binary-progress" id="progress-ffmpeg" style="display:none;">
+                                <div class="progress-bar-inline">
+                                    <div class="progress-fill-inline" id="progress-fill-ffmpeg"></div>
+                                </div>
+                                <span class="progress-text" id="progress-text-ffmpeg">0%</span>
+                            </div>
                         </div>
                         <button class="btn-download" id="download-ffmpeg" style="display:none;">
                             <i class="fas fa-download"></i> Download
@@ -117,6 +123,12 @@
                             <span class="binary-name">FFprobe</span>
                             <span class="binary-status" id="status-ffprobe">Checking...</span>
                             <span class="binary-path" id="path-ffprobe"></span>
+                            <div class="binary-progress" id="progress-ffprobe" style="display:none;">
+                                <div class="progress-bar-inline">
+                                    <div class="progress-fill-inline" id="progress-fill-ffprobe"></div>
+                                </div>
+                                <span class="progress-text" id="progress-text-ffprobe">0%</span>
+                            </div>
                         </div>
                         <button class="btn-download" id="download-ffprobe" style="display:none;">
                             <i class="fas fa-download"></i> Download
@@ -134,6 +146,12 @@
                             <span class="binary-name">yt-dlp</span>
                             <span class="binary-status" id="status-ytdlp">Checking...</span>
                             <span class="binary-path" id="path-ytdlp"></span>
+                            <div class="binary-progress" id="progress-ytdlp" style="display:none;">
+                                <div class="progress-bar-inline">
+                                    <div class="progress-fill-inline" id="progress-fill-ytdlp"></div>
+                                </div>
+                                <span class="progress-text" id="progress-text-ytdlp">0%</span>
+                            </div>
                         </div>
                         <button class="btn-download" id="download-ytdlp" style="display:none;">
                             <i class="fas fa-download"></i> Download
@@ -144,14 +162,7 @@
                     </div>
                 </div>
 
-                <!-- Progress bar (hidden by default) -->
-                <div class="download-progress" id="download-progress" style="display:none;">
-                    <div class="progress-label" id="progress-label">Downloading...</div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progress-fill"></div>
-                    </div>
-                    <div class="progress-percent" id="progress-percent">0%</div>
-                </div>
+
 
                 <div class="action-buttons">
                     <button class="btn btn-secondary" id="btn-skip">

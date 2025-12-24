@@ -302,6 +302,54 @@ body {
     font-family: 'Monaco', 'Consolas', monospace;
 }
 
+/* ===== Inline Progress Bar ===== */
+.binary-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.progress-bar-inline {
+    flex: 1;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill-inline {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-hover));
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.progress-fill-inline.waiting {
+    background: rgba(255, 255, 255, 0.2);
+    animation: pulse-waiting 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-waiting {
+
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.progress-text {
+    font-size: 10px;
+    color: var(--text-secondary);
+    min-width: 32px;
+    text-align: right;
+}
+
 .binary-check {
     width: 32px;
     height: 32px;

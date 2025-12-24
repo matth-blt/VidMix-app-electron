@@ -28,6 +28,7 @@ const modules = {
 // ===== DOM Elements =====
 let toolPanel, terminal, queueContent, mediainfoContent;
 let progressFill, progressPercent, progressStatus, progressEta;
+let splashOverlay, splashStatus;
 
 // ===== Initialization =====
 document.addEventListener('DOMContentLoaded', async () => {
@@ -40,25 +41,67 @@ document.addEventListener('DOMContentLoaded', async () => {
   progressPercent = document.getElementById('progress-percent');
   progressStatus = document.getElementById('progress-status');
   progressEta = document.getElementById('progress-eta');
+  splashOverlay = document.getElementById('splash-overlay');
+  splashStatus = document.getElementById('splash-status');
 
-  // Detect OS and adapt UI
-  await detectAndAdaptOS();
-
-  // Setup
-  setupNavigation();
-  setupWindowControls();
-  setupQueueControls();
-  setupIPCListeners();
-
-  // Check binaries status
-  await checkBinariesStatus();
-
-  // Load initial tab
-  loadTab('vidsencoder');
-
-  // Log ready
-  log('VidMix ready.', 'success');
+  // Show splash and initialize app
+  await initializeWithSplash();
 });
+
+// ===== Splash Screen & Initialization =====
+async function initializeWithSplash() {
+  try {
+    // Update splash status
+    updateSplashStatus('Detecting platform...');
+    await detectAndAdaptOS();
+
+    // Check binaries
+    updateSplashStatus('Checking binaries...');
+    await checkBinariesStatus();
+
+    // Setup UI
+    updateSplashStatus('Setting up interface...');
+    setupNavigation();
+    setupWindowControls();
+    setupQueueControls();
+    setupIPCListeners();
+
+    // Load initial tab
+    updateSplashStatus('Loading modules...');
+    loadTab('vidsencoder');
+
+    // Minimum splash display time (for smooth UX)
+    await new Promise(resolve => setTimeout(resolve, 1800));
+
+    // Sweep out the splash screen
+    await hideSplash();
+
+    // Log ready after splash is gone
+    log('VidMix ready.', 'success');
+  } catch (e) {
+    console.error('Initialization error:', e);
+    updateSplashStatus(`Error: ${e.message}`);
+  }
+}
+
+function updateSplashStatus(text) {
+  if (splashStatus) {
+    splashStatus.textContent = text;
+  }
+}
+
+async function hideSplash() {
+  if (!splashOverlay) return;
+
+  // Add sweep-out animation class
+  splashOverlay.classList.add('sweep-out');
+
+  // Wait for animation to complete
+  await new Promise(resolve => setTimeout(resolve, 600));
+
+  // Hide and remove from DOM flow
+  splashOverlay.classList.add('hidden');
+}
 
 // ===== OS Detection =====
 async function detectAndAdaptOS() {
@@ -348,6 +391,16 @@ function setupIPCListeners() {
 
   window.electron?.onTerminalMessage?.((message) => {
     log(message);
+  });
+
+  // Listen to encoding progress
+  window.electron?.onEncodingProgress?.((data) => {
+    if (data.progress !== undefined) {
+      updateProgress(data.progress, data.status || 'Encoding...');
+    }
+    if (data.eta && progressEta) {
+      progressEta.textContent = data.eta;
+    }
   });
 }
 

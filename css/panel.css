@@ -1,0 +1,236 @@
+/* ===== Panel Style ===== */
+
+.panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-radius: var(--radius-lg, 12px);
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ===== Row Layout ===== */
+.panel-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.2s ease;
+}
+
+.panel-row:last-child {
+    border-bottom: none;
+}
+
+.panel-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+/* ===== Label ===== */
+.panel-label {
+    flex: 0 0 140px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+}
+
+/* ===== Value Container ===== */
+.panel-value {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ===== Input Fields ===== */
+.panel-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md, 8px);
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--text-primary, #e3e3e3);
+    transition: all 0.2s ease;
+}
+
+.panel-input:focus {
+    outline: none;
+    border-color: var(--accent-primary, #1e5cce);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.panel-input::placeholder {
+    color: var(--text-muted, rgba(255, 255, 255, 0.3));
+}
+
+.panel-input:disabled {
+    cursor: default;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+}
+
+/* ===== Small Buttons ===== */
+.panel-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md, 8px);
+    color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 12px;
+}
+
+.panel-btn:hover {
+    background: var(--accent-primary, #1e5cce);
+    color: white;
+    border-color: var(--accent-primary, #1e5cce);
+}
+
+/* ===== Select Dropdowns ===== */
+.panel-select {
+    flex: 1;
+    max-width: 200px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md, 8px);
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--text-primary, #e3e3e3);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+}
+
+.panel-select:hover,
+.panel-select:focus {
+    outline: none;
+    border-color: var(--accent-primary, #1e5cce);
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.panel-select option {
+    background: var(--bg-secondary, #13131d);
+    color: var(--text-primary, #e3e3e3);
+}
+
+/* ===== Codec Grid ===== */
+.codec-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: 100%;
+}
+
+.codec-grid .codec {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md, 8px);
+    color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.codec-grid .codec:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary, #e3e3e3);
+}
+
+.codec-grid .codec.active {
+    background: var(--accent-primary, #1e5cce);
+    border-color: var(--accent-primary, #1e5cce);
+    color: white;
+}
+
+/* ===== Actions Row ===== */
+.panel-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary, #e3e3e3);
+}
+
+/* ===== Toggle Inline ===== */
+.toggle-inline {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.toggle-text {
+    font-size: 12px;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+}
+
+/* ===== Textarea ===== */
+.panel-textarea {
+    flex: 1;
+    min-height: 100px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md, 8px);
+    padding: 8px 12px;
+    font-size: 11px;
+    font-family: 'Monaco', 'Consolas', monospace;
+    color: var(--text-primary, #e3e3e3);
+    resize: vertical;
+    transition: all 0.2s ease;
+}
+
+.panel-textarea:focus {
+    outline: none;
+    border-color: var(--accent-primary, #1e5cce);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* ===== Row Variants ===== */
+.panel-row-tall {
+    align-items: flex-start;
+    padding: 16px;
+}
+
+.panel-row-tall .panel-label {
+    padding-top: 8px;
+}
+
+/* ===== Codec Grid Variants ===== */
+.codec-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+/* ===== Hidden Class ===== */
+.hidden {
+    display: none !important;
+}
+
+/* ===== Panel Button Hidden ===== */
+.panel-btn.hidden {
+    display: none;
+}

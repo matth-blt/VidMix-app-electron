@@ -10,67 +10,81 @@ export const template = `
       <h2>YTDownloader</h2>
     </div>
     
-    <div class="form-group">
-      <label>YouTube URL</label>
-      <div class="input-row">
-        <input type="text" class="form-input" id="yt-url" placeholder="https://youtube.com/watch?v=...">
-        <button class="btn" id="fetch-formats"><i class="fas fa-search"></i> Fetch</button>
-      </div>
-    </div>
-    
-    <div class="form-group">
-      <label>Output Path</label>
-      <div class="input-row">
-        <input type="text" class="form-input" id="output-folder" disabled placeholder="Select output folder...">
-        <button class="btn" id="browse-output"><i class="fas fa-folder-open"></i> Browse</button>
-      </div>
-    </div>
-    
-    <!-- Auto Mode Toggle -->
-    <div class="form-group">
-      <div class="toggle-item auto-toggle">
-        <span class="toggle-label"><i class="fas fa-magic"></i> Auto Best Quality</span>
-        <div class="toggle-switch">
-          <input type="checkbox" id="toggle-auto" class="toggle-input" checked>
-          <label for="toggle-auto" class="toggle-track"></label>
+    <div class="panel">
+      <!-- YouTube URL Row -->
+      <div class="panel-row">
+        <label class="panel-label">YouTube URL</label>
+        <div class="panel-value">
+          <input type="text" class="panel-input" id="yt-url" placeholder="https://youtube.com/watch?v=...">
+          <button class="panel-btn hidden" id="fetch-formats" title="Fetch formats"><i class="fas fa-search"></i></button>
         </div>
-        <span class="auto-hint">Best video + audio, merged to MP4</span>
       </div>
-    </div>
-    
-    <!-- Manual Options (hidden when auto is on) -->
-    <div id="manual-options" class="manual-options hidden">
-      <div class="form-group">
-        <label>Download Options</label>
-        <div class="toggle-options">
-          <div class="toggle-item">
-            <span class="toggle-label"><i class="fas fa-video"></i> Video</span>
+      
+      <!-- Output Path Row -->
+      <div class="panel-row">
+        <label class="panel-label">Output path</label>
+        <div class="panel-value">
+          <input type="text" class="panel-input" id="output-folder" disabled placeholder="Select output folder...">
+          <button class="panel-btn" id="browse-output"><i class="fas fa-ellipsis-h"></i></button>
+        </div>
+      </div>
+      
+      <!-- Auto Mode Row -->
+      <div class="panel-row">
+        <label class="panel-label">Quality mode</label>
+        <div class="panel-value">
+          <div class="toggle-inline">
+            <span class="toggle-text">Auto Best Quality</span>
             <div class="toggle-switch">
-              <input type="checkbox" id="toggle-video" class="toggle-input" checked>
-              <label for="toggle-video" class="toggle-track"></label>
+              <input type="checkbox" id="toggle-auto" class="toggle-input" checked>
+              <label for="toggle-auto" class="toggle-track"></label>
             </div>
-            <input type="text" class="form-input format-input" id="video-format" placeholder="Format ID (e.g. 137)">
-          </div>
-          <div class="toggle-item">
-            <span class="toggle-label"><i class="fas fa-music"></i> Audio</span>
-            <div class="toggle-switch">
-              <input type="checkbox" id="toggle-audio" class="toggle-input" checked>
-              <label for="toggle-audio" class="toggle-track"></label>
-            </div>
-            <input type="text" class="form-input format-input" id="audio-format" placeholder="Format ID (e.g. 140)">
           </div>
         </div>
       </div>
       
-      <div class="form-group">
-        <label>Available Formats</label>
-        <textarea class="form-input" id="format-info" readonly placeholder="Click 'Fetch' to see available formats..."></textarea>
+      <!-- Manual Options (hidden when auto is on) -->
+      <div id="manual-options" class="hidden">
+        <!-- Video Format Row -->
+        <div class="panel-row">
+          <label class="panel-label">Video format</label>
+          <div class="panel-value">
+            <div class="toggle-switch">
+              <input type="checkbox" id="toggle-video" class="toggle-input" checked>
+              <label for="toggle-video" class="toggle-track"></label>
+            </div>
+            <input type="text" class="panel-input" id="video-format" placeholder="Format ID (e.g. 137)">
+          </div>
+        </div>
+        
+        <!-- Audio Format Row -->
+        <div class="panel-row">
+          <label class="panel-label">Audio format</label>
+          <div class="panel-value">
+            <div class="toggle-switch">
+              <input type="checkbox" id="toggle-audio" class="toggle-input" checked>
+              <label for="toggle-audio" class="toggle-track"></label>
+            </div>
+            <input type="text" class="panel-input" id="audio-format" placeholder="Format ID (e.g. 140)">
+          </div>
+        </div>
+        
+        <!-- Formats Info Row -->
+        <div class="panel-row panel-row-tall">
+          <label class="panel-label">Available formats</label>
+          <div class="panel-value">
+            <textarea class="panel-textarea" id="format-info" readonly placeholder="Click 'Fetch' to see available formats..."></textarea>
+          </div>
+        </div>
       </div>
     </div>
     
-    <button class="btn btn-action" id="add-to-queue">
-      <i class="fas fa-bars-staggered"></i> Add to queue
-    </button>
+    <!-- Bottom Actions -->
+    <div class="panel-actions">
+      <button class="btn btn-action" id="add-to-queue">
+        <i class="fas fa-bars-staggered"></i> Add to queue
+      </button>
+    </div>
   </div>
 `;
 

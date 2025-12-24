@@ -14,12 +14,96 @@
   <link rel="stylesheet" href="css/queue.css">
   <link rel="stylesheet" href="css/progress.css">
   <link rel="stylesheet" href="css/mediainfo.css">
+  <link rel="stylesheet" href="css/splash.css">
+  <link rel="stylesheet" href="css/panel.css">
   <!-- Vendor CSS -->
   <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.min.css">
   <link rel="stylesheet" href="node_modules/animate.css/animate.min.css">
 </head>
 
 <body>
+  <!-- Splash Screen Overlay -->
+  <div id="splash-overlay" class="splash-overlay">
+    <div class="splash-content">
+      <!-- VIDMIX Loader -->
+      <div class="loader">
+        <defs id="loader-defs">
+          <linearGradient id="splash-grad-blue" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#1e5cce" />
+            <stop offset="100%" style="stop-color:#4f8ef7" />
+          </linearGradient>
+        </defs>
+        <!-- V -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="48" width="48" class="letter">
+          <defs>
+            <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#1e5cce" />
+              <stop offset="100%" style="stop-color:#4f8ef7" />
+            </linearGradient>
+          </defs>
+          <path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#g1)"
+            d="M 8,8 L 32,56 L 56,8" class="dash" pathLength="360"></path>
+        </svg>
+        <!-- I -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="48" width="48" class="letter">
+          <defs>
+            <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#1e5cce" />
+              <stop offset="100%" style="stop-color:#4f8ef7" />
+            </linearGradient>
+          </defs>
+          <path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#g2)" d="M 32,8 L 32,56"
+            class="dash" pathLength="360"></path>
+        </svg>
+        <!-- D -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="48" width="48" class="letter">
+          <defs>
+            <linearGradient id="g3" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#1e5cce" />
+              <stop offset="100%" style="stop-color:#4f8ef7" />
+            </linearGradient>
+          </defs>
+          <path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#g3)"
+            d="M 16,8 L 16,56 L 40,56 Q 56,56 56,32 Q 56,8 40,8 L 16,8" class="dash" pathLength="360"></path>
+        </svg>
+        <!-- M -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="48" width="48" class="letter">
+          <defs>
+            <linearGradient id="g4" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#1e5cce" />
+              <stop offset="100%" style="stop-color:#4f8ef7" />
+            </linearGradient>
+          </defs>
+          <path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#g4)"
+            d="M 8,56 L 8,8 L 32,40 L 56,8 L 56,56" class="dash" pathLength="360"></path>
+        </svg>
+        <!-- I -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="48" width="48" class="letter">
+          <defs>
+            <linearGradient id="g5" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#1e5cce" />
+              <stop offset="100%" style="stop-color:#4f8ef7" />
+            </linearGradient>
+          </defs>
+          <path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#g5)" d="M 32,8 L 32,56"
+            class="dash" pathLength="360"></path>
+        </svg>
+        <!-- X -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="48" width="48" class="letter">
+          <defs>
+            <linearGradient id="g6" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#1e5cce" />
+              <stop offset="100%" style="stop-color:#4f8ef7" />
+            </linearGradient>
+          </defs>
+          <path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#g6)"
+            d="M 8,8 L 56,56 M 56,8 L 8,56" class="dash" pathLength="360"></path>
+        </svg>
+      </div>
+      <p class="splash-status" id="splash-status">Loading backend...</p>
+    </div>
+  </div>
+
   <div id="app">
     <!-- Title Bar -->
     <header class="titlebar">

@@ -38,36 +38,38 @@ function createSetupWindow() {
 
 // Mock IPC handlers for preview
 ipcMain.handle('check-binaries', async () => {
-    // Simulate mixed state for preview
+    // Simulate: ffmpeg found, ffprobe and ytdlp missing
     return {
         ffmpeg: { found: true, path: '/opt/homebrew/bin/ffmpeg', isSystem: true },
         ffprobe: { found: false },
-        ytdlp: { found: true, path: '/opt/homebrew/bin/yt-dlp', isSystem: true }
+        ytdlp: { found: false }
     };
 });
 
 ipcMain.handle('download-ffmpeg', async () => {
     // Simulate download progress
-    for (let i = 0; i <= 100; i += 10) {
+    for (let i = 0; i <= 100; i += 5) {
         setupWindow?.webContents.send('binary-progress', {
             name: 'ffmpeg',
-            progress: i,
-            message: `Downloading FFmpeg... ${i}%`
+            progress: i
         });
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, 100));
     }
-    return { success: true, path: '/mock/path/ffmpeg' };
+    return {
+        success: true,
+        path: '/mock/path/ffmpeg',
+        ffprobePath: '/mock/path/ffprobe'
+    };
 });
 
 ipcMain.handle('download-ytdlp', async () => {
     // Simulate download progress
-    for (let i = 0; i <= 100; i += 10) {
+    for (let i = 0; i <= 100; i += 8) {
         setupWindow?.webContents.send('binary-progress', {
             name: 'ytdlp',
-            progress: i,
-            message: `Downloading yt-dlp... ${i}%`
+            progress: Math.min(i, 100)
         });
-        await new Promise(r => setTimeout(r, 150));
+        await new Promise(r => setTimeout(r, 80));
     }
     return { success: true, path: '/mock/path/yt-dlp' };
 });
@@ -86,6 +88,11 @@ app.whenReady().then(() => {
     console.log('🎬 VidMix Setup Preview launched');
     console.log('   This is a preview of the installer UI');
     console.log('   Close the window to exit');
+    console.log('');
+    console.log('   Current mock state:');
+    console.log('   - FFmpeg: ✅ Found (system)');
+    console.log('   - FFprobe: ❌ Missing');
+    console.log('   - yt-dlp: ❌ Missing');
 });
 
 app.on('window-all-closed', () => {
