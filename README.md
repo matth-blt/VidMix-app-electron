@@ -137,3 +137,4 @@ MIT License - see [LICENSE](LICENSE) for details.
 - [FFmpeg](https://ffmpeg.org/) - Video processing
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) - YouTube downloading
 - [Electron](https://www.electronjs.org/) - Desktop framework
+- [Enhancr](https://github.com/mafiosnik777/enhancr) - UI/UX Inspiration
