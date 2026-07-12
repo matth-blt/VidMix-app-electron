@@ -742,6 +742,11 @@ ipcMain.handle('open-dialog', async () => {
 });
 
 ipcMain.handle('fetch-formats', (event, url) => {
+  if (!ytdlpPath || !fs.existsSync(ytdlpPath)) {
+    event.sender.send('terminal-message', 'Error: yt-dlp not found. Please download it from Settings.');
+    throw new Error('yt-dlp not found. Go to Settings to download.');
+  }
+
   return new Promise((resolve, reject) => {
     const ytDlp = spawn(ytdlpPath, ['--no-playlist', '-F', url]);
 
@@ -771,6 +776,11 @@ ipcMain.handle('fetch-formats', (event, url) => {
 });
 
 ipcMain.handle('download', (event, args) => {
+  if (!ytdlpPath || !fs.existsSync(ytdlpPath)) {
+    event.sender.send('terminal-message', 'Error: yt-dlp not found. Please download it from Settings.');
+    throw new Error('yt-dlp not found. Go to Settings to download.');
+  }
+
   const { url, outputFolder, videoFormat, audioFormat, videoEnabled, audioEnabled, autoMode } = args;
 
   let ytdlpArgs;
@@ -864,6 +874,16 @@ ipcMain.handle('browse-output', async () => {
 });
 
 ipcMain.handle('extract-frames', async (event, { inputPath, outputPath, format, createFolder }) => {
+  if (!ffmpegPath || !fs.existsSync(ffmpegPath)) {
+    event.sender.send('terminal-message', 'Error: FFmpeg not found. Please download it from Settings.');
+    throw new Error('FFmpeg not found. Go to Settings to download.');
+  }
+
+  if (!['PNG', 'TIFF', 'JPEG'].includes(format)) {
+    event.sender.send('terminal-message', `Error: Unknown frame format "${format}".`);
+    throw new Error(`Unknown frame format: ${format}`);
+  }
+
   // Create output folder if needed
   if (createFolder && !fs.existsSync(outputPath)) {
     fs.mkdirSync(outputPath, { recursive: true });
@@ -882,14 +902,41 @@ ipcMain.handle('extract-frames', async (event, { inputPath, outputPath, format, 
   return new Promise((resolve, reject) => {
     event.sender.send('terminal-message', `Extracting frames to: ${outputPath}`);
 
-    execFile(ffmpegPath, ffmpegArgs, (error, stdout, stderr) => {
-      if (error) {
-        event.sender.send('terminal-message', `✗ Extract failed: ${stderr}`);
-        reject(stderr);
-      } else {
-        event.sender.send('terminal-message', '✓ Frames extracted successfully!');
-        resolve(stdout);
+    const ffmpegProcess = spawn(ffmpegPath, ffmpegArgs);
+    const stderrLines = [];
+    const maxLines = 50;
+
+    ffmpegProcess.stderr.on('data', (data) => {
+      const lines = data.toString().split('\n');
+      for (const line of lines) {
+        if (line.trim()) {
+          // Forward meaningful lines to terminal-message
+          if (line.includes('Error') || line.includes('error')) {
+            event.sender.send('terminal-message', line.trim());
+          }
+          // Keep rolling buffer of last ~50 lines
+          stderrLines.push(line.trim());
+          if (stderrLines.length > maxLines) {
+            stderrLines.shift();
+          }
+        }
       }
+    });
+
+    ffmpegProcess.on('close', (code) => {
+      if (code === 0) {
+        event.sender.send('terminal-message', '✓ Frames extracted successfully!');
+        resolve('Frames extracted successfully');
+      } else {
+        const stderrTail = stderrLines.join('\n');
+        event.sender.send('terminal-message', `✗ Extract failed with code ${code}:\n${stderrTail}`);
+        reject(new Error(`Extract failed: ${stderrTail || `exit code ${code}`}`));
+      }
+    });
+
+    ffmpegProcess.on('error', (err) => {
+      event.sender.send('terminal-message', `✗ Error: ${err.message}`);
+      reject(err);
     });
   });
 });
