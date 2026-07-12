@@ -8,6 +8,10 @@ import * as vidsencoder from './js/vidsencoder.js';
 import * as ytdownloader from './js/ytdownloader.js';
 import * as extract from './js/extract.js';
 import * as settings from './js/settings.js';
+// Side-effect import: publishes filename helpers on globalThis.__utils.
+// See js/codec-rules.js for why this isn't a named `import { ... } from`.
+import './js/utils.js';
+const { getFileName } = globalThis.__utils;
 
 /** State Management */
 const state = {
@@ -202,6 +206,13 @@ function addQueueItem(item) {
  * @param {number} id - Item ID to remove
  */
 function removeQueueItem(id) {
+  if (state.isProcessing) {
+    const target = state.queue.find(item => item.id === id);
+    if (target && target.status === 'Processing') {
+      log('Cannot remove an item that is currently processing.', 'warning');
+      return;
+    }
+  }
   state.queue = state.queue.filter(item => item.id !== id);
   renderQueue();
 }
@@ -210,6 +221,15 @@ function removeQueueItem(id) {
  * Clears all items from the queue
  */
 function clearQueue() {
+  if (state.isProcessing) {
+    const kept = state.queue.filter(item => item.status === 'Processing');
+    state.queue = kept;
+    renderQueue();
+    if (kept.length > 0) {
+      log('Cannot clear while processing; kept running item.', 'warning');
+    }
+    return;
+  }
   state.queue = [];
   renderQueue();
   log('Queue cleared.', 'info');
@@ -239,7 +259,7 @@ function renderQueue() {
       </div>
       <div class="queue-item-info">
         <div class="queue-item-title">${item.title}</div>
-        <div class="queue-item-path">${item.subtitle || item.status}</div>
+        <div class="queue-item-path">${item.status !== 'Pending' ? item.status : (item.subtitle || item.status)}</div>
       </div>
       <button class="queue-item-remove" data-id="${item.id}">
         <i class="fas fa-times"></i>
@@ -270,14 +290,21 @@ async function startQueue() {
     return;
   }
 
+  const pending = state.queue.filter(i => i.status === 'Pending' || i.status === 'Failed');
+  if (pending.length === 0) {
+    log('No pending tasks in queue.', 'warning');
+    return;
+  }
+
   state.isProcessing = true;
   log('Starting queue...', 'info');
 
-  for (let i = 0; i < state.queue.length; i++) {
-    const item = state.queue[i];
-    const progress = ((i + 1) / state.queue.length) * 100;
+  for (let index = 0; index < pending.length; index++) {
+    const item = pending[index];
 
-    updateProgress(progress * 0.5, `Processing: ${item.title}`);
+    item.status = 'Processing';
+    renderQueue();
+    updateProgress((index / pending.length) * 100, `Processing: ${item.title}`);
     log(`Processing: ${item.title}`, 'info');
 
     try {
@@ -443,11 +470,3 @@ function setupIPCListeners() {
   });
 }
 
-/**
- * Extracts filename without extension from a path
- * @param {string} filePath - Full file path
- * @returns {string} Filename without extension
- */
-function getFileName(filePath) {
-  return filePath.split(/[\\/]/).pop().split('.').slice(0, -1).join('.');
-}
