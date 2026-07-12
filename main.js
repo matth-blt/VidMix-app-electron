@@ -905,25 +905,38 @@ ipcMain.handle('extract-frames', async (event, { inputPath, outputPath, format, 
     const ffmpegProcess = spawn(ffmpegPath, ffmpegArgs);
     const stderrLines = [];
     const maxLines = 50;
+    let stderrRemainder = '';
+
+    // Extract line-processing logic to avoid duplication
+    const processLine = (line) => {
+      if (line.trim()) {
+        // Forward meaningful lines to terminal-message
+        if (line.includes('Error') || line.includes('error')) {
+          event.sender.send('terminal-message', line.trim());
+        }
+        // Keep rolling buffer of last ~50 lines
+        stderrLines.push(line.trim());
+        if (stderrLines.length > maxLines) {
+          stderrLines.shift();
+        }
+      }
+    };
 
     ffmpegProcess.stderr.on('data', (data) => {
-      const lines = data.toString().split('\n');
+      const text = stderrRemainder + data.toString();
+      const lines = text.split('\n');
+      stderrRemainder = lines.pop(); // last element is incomplete (or '')
       for (const line of lines) {
-        if (line.trim()) {
-          // Forward meaningful lines to terminal-message
-          if (line.includes('Error') || line.includes('error')) {
-            event.sender.send('terminal-message', line.trim());
-          }
-          // Keep rolling buffer of last ~50 lines
-          stderrLines.push(line.trim());
-          if (stderrLines.length > maxLines) {
-            stderrLines.shift();
-          }
-        }
+        processLine(line);
       }
     });
 
     ffmpegProcess.on('close', (code) => {
+      // Process any remaining incomplete line
+      if (stderrRemainder) {
+        processLine(stderrRemainder);
+      }
+
       if (code === 0) {
         event.sender.send('terminal-message', '✓ Frames extracted successfully!');
         resolve('Frames extracted successfully');
@@ -936,7 +949,7 @@ ipcMain.handle('extract-frames', async (event, { inputPath, outputPath, format, 
 
     ffmpegProcess.on('error', (err) => {
       event.sender.send('terminal-message', `✗ Error: ${err.message}`);
-      reject(err);
+      reject(err.message);
     });
   });
 });
