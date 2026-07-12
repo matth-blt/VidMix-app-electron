@@ -26,8 +26,22 @@ function getFileName(filePath) {
   return i > 0 ? base.slice(0, i) : base;
 }
 
+/**
+ * Escapes HTML-significant characters so a string is safe to interpolate
+ * into an `innerHTML` template string. Values that reach the DOM this way
+ * (e.g. filenames, media info) may originate from user-controlled input
+ * such as a crafted filename, so they must never be inserted raw.
+ * @param {*} s - value to escape (coerced to string)
+ * @returns {string} HTML-escaped string
+ */
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { getFileName };
+  module.exports = { getFileName, escapeHtml };
 } else {
-  globalThis.__utils = { getFileName };
+  globalThis.__utils = { getFileName, escapeHtml };
 }

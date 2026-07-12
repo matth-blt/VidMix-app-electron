@@ -11,7 +11,7 @@ import * as settings from './js/settings.js';
 // Side-effect import: publishes filename helpers on globalThis.__utils.
 // See js/codec-rules.js for why this isn't a named `import { ... } from`.
 import './js/utils.js';
-const { getFileName } = globalThis.__utils;
+const { getFileName, escapeHtml } = globalThis.__utils;
 
 /** State Management */
 const state = {
@@ -258,8 +258,8 @@ function renderQueue() {
         <i class="fas ${item.icon}"></i>
       </div>
       <div class="queue-item-info">
-        <div class="queue-item-title">${item.title}</div>
-        <div class="queue-item-path">${item.status !== 'Pending' ? item.status : (item.subtitle || item.status)}</div>
+        <div class="queue-item-title">${escapeHtml(item.title)}</div>
+        <div class="queue-item-path">${escapeHtml(item.status !== 'Pending' ? item.status : (item.subtitle || item.status))}</div>
       </div>
       <button class="queue-item-remove" data-id="${item.id}">
         <i class="fas fa-times"></i>
@@ -380,7 +380,7 @@ async function updateMediaInfo(filePath) {
   mediainfoContent.innerHTML = `
     <div class="mediainfo-header-text">
       <i class="fas fa-spinner fa-spin"></i>
-      <span class="file-name">${fileName}</span>
+      <span class="file-name">${escapeHtml(fileName)}</span>
     </div>
     <div class="mediainfo-empty">Loading...</div>
   `;
@@ -392,9 +392,9 @@ async function updateMediaInfo(filePath) {
       mediainfoContent.innerHTML = `
         <div class="mediainfo-header-text">
           <i class="fas fa-exclamation-triangle"></i>
-          <span class="file-name">${fileName}</span>
+          <span class="file-name">${escapeHtml(fileName)}</span>
         </div>
-        <div class="mediainfo-empty">${info.error}</div>
+        <div class="mediainfo-empty">${escapeHtml(info.error)}</div>
       `;
       return;
     }
@@ -402,17 +402,17 @@ async function updateMediaInfo(filePath) {
     mediainfoContent.innerHTML = `
       <div class="mediainfo-header-text">
         <i class="fas fa-video"></i>
-        <span class="file-name">${info.filename}</span>
+        <span class="file-name">${escapeHtml(info.filename)}</span>
       </div>
       <ul class="mediainfo-list">
-        <li><span class="mediainfo-label">Duration</span> <span class="mediainfo-value">${info.duration}</span></li>
-        <li><span class="mediainfo-label">Resolution</span> <span class="mediainfo-value">${info.resolution}</span></li>
-        <li><span class="mediainfo-label">Video</span> <span class="mediainfo-value">${info.videoCodec}</span></li>
-        <li><span class="mediainfo-label">Audio</span> <span class="mediainfo-value">${info.audioCodec}</span></li>
-        <li><span class="mediainfo-label">FPS</span> <span class="mediainfo-value">${info.fps}</span></li>
-        <li><span class="mediainfo-label">Bitrate</span> <span class="mediainfo-value">${info.bitrate}</span></li>
-        <li><span class="mediainfo-label">Size</span> <span class="mediainfo-value">${info.size}</span></li>
-        <li><span class="mediainfo-label">Pixel Fmt</span> <span class="mediainfo-value">${info.pixelFormat}</span></li>
+        <li><span class="mediainfo-label">Duration</span> <span class="mediainfo-value">${escapeHtml(info.duration)}</span></li>
+        <li><span class="mediainfo-label">Resolution</span> <span class="mediainfo-value">${escapeHtml(info.resolution)}</span></li>
+        <li><span class="mediainfo-label">Video</span> <span class="mediainfo-value">${escapeHtml(info.videoCodec)}</span></li>
+        <li><span class="mediainfo-label">Audio</span> <span class="mediainfo-value">${escapeHtml(info.audioCodec)}</span></li>
+        <li><span class="mediainfo-label">FPS</span> <span class="mediainfo-value">${escapeHtml(info.fps)}</span></li>
+        <li><span class="mediainfo-label">Bitrate</span> <span class="mediainfo-value">${escapeHtml(info.bitrate)}</span></li>
+        <li><span class="mediainfo-label">Size</span> <span class="mediainfo-value">${escapeHtml(info.size)}</span></li>
+        <li><span class="mediainfo-label">Pixel Fmt</span> <span class="mediainfo-value">${escapeHtml(info.pixelFormat)}</span></li>
       </ul>
     `;
 
@@ -421,7 +421,7 @@ async function updateMediaInfo(filePath) {
     mediainfoContent.innerHTML = `
       <div class="mediainfo-header-text">
         <i class="fas fa-exclamation-triangle"></i>
-        <span class="file-name">${fileName}</span>
+        <span class="file-name">${escapeHtml(fileName)}</span>
       </div>
       <div class="mediainfo-empty">Error loading media info</div>
     `;

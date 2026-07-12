@@ -33,6 +33,7 @@ contextBridge.exposeInMainWorld('electron', {
      * @param {Function} callback - Progress callback with {name, progress, message}
      */
     onBinaryProgress: (callback) => {
+        ipcRenderer.removeAllListeners('download-binary-progress');
         ipcRenderer.on('download-binary-progress', (event, data) => callback(data));
     },
 

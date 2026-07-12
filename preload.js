@@ -82,6 +82,7 @@ contextBridge.exposeInMainWorld('electron', {
    */
   onTerminalMessage: (callback) => {
     terminalMessageCallback = (event, message) => callback(message);
+    ipcRenderer.removeAllListeners('terminal-message');
     ipcRenderer.on('terminal-message', terminalMessageCallback);
     return terminalMessageCallback;
   },
@@ -123,6 +124,7 @@ contextBridge.exposeInMainWorld('electron', {
    */
   onDownloadProgress: (callback) => {
     downloadProgressCallback = (event, progress) => callback(progress);
+    ipcRenderer.removeAllListeners('download-progress');
     ipcRenderer.on('download-progress', downloadProgressCallback);
     return downloadProgressCallback;
   },
@@ -142,6 +144,7 @@ contextBridge.exposeInMainWorld('electron', {
    * @param {Function} callback - Error callback
    */
   onDownloadError: (callback) => {
+    ipcRenderer.removeAllListeners('download-error');
     ipcRenderer.on('download-error', (event, error) => callback(error));
   },
 
@@ -181,6 +184,7 @@ contextBridge.exposeInMainWorld('electron', {
    * @param {Function} callback - Progress callback with {name, progress, message}
    */
   onBinaryProgress: (callback) => {
+    ipcRenderer.removeAllListeners('download-binary-progress');
     ipcRenderer.on('download-binary-progress', (event, data) => callback(data));
   },
 
@@ -189,6 +193,7 @@ contextBridge.exposeInMainWorld('electron', {
    * @param {Function} callback - Progress callback with {progress, status, eta}
    */
   onEncodingProgress: (callback) => {
+    ipcRenderer.removeAllListeners('encoding-progress');
     ipcRenderer.on('encoding-progress', (event, data) => callback(data));
   }
 });
