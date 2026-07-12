@@ -873,14 +873,17 @@ ipcMain.handle('browse-output', async () => {
   return result.filePaths[0];
 });
 
+/** Frame formats supported by extract-frames handler */
+const FRAME_FORMATS = ['PNG', 'TIFF', 'JPEG'];
+
 ipcMain.handle('extract-frames', async (event, { inputPath, outputPath, format, createFolder }) => {
   if (!ffmpegPath || !fs.existsSync(ffmpegPath)) {
     event.sender.send('terminal-message', 'Error: FFmpeg not found. Please download it from Settings.');
     throw new Error('FFmpeg not found. Go to Settings to download.');
   }
 
-  if (!['PNG', 'TIFF', 'JPEG'].includes(format)) {
-    event.sender.send('terminal-message', `Error: Unknown frame format "${format}".`);
+  if (!FRAME_FORMATS.includes(format)) {
+    event.sender.send('terminal-message', `Error: Unknown frame format "${format}". Supported formats: ${FRAME_FORMATS.join(', ')}.`);
     throw new Error(`Unknown frame format: ${format}`);
   }
 
@@ -924,7 +927,7 @@ ipcMain.handle('extract-frames', async (event, { inputPath, outputPath, format, 
 
     ffmpegProcess.stderr.on('data', (data) => {
       const text = stderrRemainder + data.toString();
-      const lines = text.split('\n');
+      const lines = text.split(/\r\n|\r|\n/);
       stderrRemainder = lines.pop(); // last element is incomplete (or '')
       for (const line of lines) {
         processLine(line);
