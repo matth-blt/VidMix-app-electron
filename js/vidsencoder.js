@@ -3,6 +3,12 @@
  * Handles video encoding functionality
  */
 
+// Side-effect import: publishes codec/container rules on globalThis.__codecRules.
+// See js/codec-rules.js for why this isn't a named `import { ... } from`.
+import './codec-rules.js';
+
+const { codecContainerRules, isValidCombo } = globalThis.__codecRules;
+
 export const template = `
   <div class="animate-fadeIn">
     <div class="tool-header">
@@ -72,10 +78,10 @@ export const template = `
         <div class="panel-value">
           <select class="panel-select" id="resolution">
             <option value="Keep">Original</option>
-            <option value="1280:720">720p</option>
-            <option value="1920:1080">1080p</option>
-            <option value="2560:1440">2K</option>
-            <option value="3840:2160">4K</option>
+            <option value="720">720p</option>
+            <option value="1080">1080p</option>
+            <option value="1440">2K</option>
+            <option value="2160">4K</option>
           </select>
         </div>
       </div>
@@ -148,6 +154,14 @@ export function init(log, addQueueItem, updateMediaInfo, getFileName) {
 
     if (!inputPath || !outputPath || !outputName) {
       log('Error: Please fill all required fields.', 'error');
+      return;
+    }
+
+    if (!isValidCombo(selectedCodec, format)) {
+      const allowed = (codecContainerRules[selectedCodec] || [])
+        .map(container => `.${container}`)
+        .join(', ');
+      log(`Error: ${selectedCodec} cannot be muxed into .${format}. Use ${allowed}.`, 'error');
       return;
     }
 

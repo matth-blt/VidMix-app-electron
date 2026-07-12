@@ -566,28 +566,61 @@ ipcMain.handle('browse-output-folder', async () => {
   return result.filePaths[0];
 });
 
+/**
+ * Compares two file paths for equality, case-insensitively on platforms
+ * whose default filesystem is case-insensitive (win32, darwin).
+ * @param {string} a
+ * @param {string} b
+ * @returns {boolean}
+ */
+function isSamePath(a, b) {
+  const resolvedA = path.resolve(a);
+  const resolvedB = path.resolve(b);
+  if (process.platform === 'win32' || process.platform === 'darwin') {
+    return resolvedA.toLowerCase() === resolvedB.toLowerCase();
+  }
+  return resolvedA === resolvedB;
+}
+
+/** Audio codecs that mp4/mov can carry as-is without a re-encode */
+const COPYABLE_AUDIO_CODECS = ['aac', 'mp3', 'ac3'];
+
 ipcMain.handle('encode-video', async (event, { inputPath, outputPath, videoName, encoder, format, resolution }) => {
   if (!ffmpegPath || !fs.existsSync(ffmpegPath)) {
     event.sender.send('terminal-message', 'Error: FFmpeg not found. Please download it from Settings.');
     throw new Error('FFmpeg not found. Go to Settings to download.');
   }
 
-  const outputFile = path.join(outputPath, `${videoName}.${format}`);
+  if (!fs.existsSync(outputPath)) {
+    event.sender.send('terminal-message', 'Error: Output folder does not exist.');
+    throw new Error('Output folder does not exist');
+  }
+
+  let outputFile = path.join(outputPath, `${videoName}.${format}`);
+
+  if (isSamePath(outputFile, inputPath)) {
+    outputFile = path.join(outputPath, `${videoName} (encoded).${format}`);
+    event.sender.send('terminal-message', `Output filename matches the source file; renamed to "${path.basename(outputFile)}" to avoid overwriting it.`);
+  }
 
   let totalDurationMs = 0;
+  let sourceAudioCodec = null;
   try {
-    const durationResult = await new Promise((resolve, reject) => {
+    const probeResult = await new Promise((resolve, reject) => {
       execFile(ffprobePath, [
         '-v', 'error',
-        '-show_entries', 'format=duration',
-        '-of', 'default=noprint_wrappers=1:nokey=1',
+        '-print_format', 'json',
+        '-show_entries', 'format=duration:stream=codec_type,codec_name',
         inputPath
       ], (error, stdout) => {
         if (error) reject(error);
-        else resolve(stdout.trim());
+        else resolve(stdout);
       });
     });
-    totalDurationMs = parseFloat(durationResult) * 1000000; // Convert to microseconds
+    const probeData = JSON.parse(probeResult);
+    totalDurationMs = parseFloat(probeData.format?.duration || 0) * 1000000; // Convert to microseconds
+    const audioStream = probeData.streams?.find(s => s.codec_type === 'audio');
+    sourceAudioCodec = audioStream?.codec_name || null;
     event.sender.send('terminal-message', `Duration: ${(totalDurationMs / 1000000).toFixed(2)}s`);
   } catch (e) {
     event.sender.send('terminal-message', `Warning: Could not get duration, progress will be estimated`);
@@ -603,16 +636,28 @@ ipcMain.handle('encode-video', async (event, { inputPath, outputPath, videoName,
     'VP9': ['-c:v', 'libvpx-vp9', '-crf', '30', '-b:v', '0', '-pix_fmt', 'yuv420p']
   }[encoder] || ['-c:v', 'libx264', '-preset', 'medium', '-crf', '18'];
 
+  let audioArgs;
+  if (format === 'webm') {
+    audioArgs = ['-c:a', 'libopus', '-b:a', '192k'];
+  } else if (format === 'mp4' || format === 'mov') {
+    audioArgs = (sourceAudioCodec && COPYABLE_AUDIO_CODECS.includes(sourceAudioCodec.toLowerCase()))
+      ? ['-c:a', 'copy']
+      : ['-c:a', 'aac', '-b:a', '320k'];
+  } else {
+    // mkv (and any other container) accepts nearly everything as-is
+    audioArgs = ['-c:a', 'copy'];
+  }
+
   let ffmpegArgs = ['-hide_banner', '-y', '-i', inputPath];
 
   ffmpegArgs.push('-progress', 'pipe:1');
 
   if (resolution !== 'Keep') {
-    ffmpegArgs.push('-vf', `scale=${resolution}:flags=lanczos`);
+    ffmpegArgs.push('-vf', `scale=-2:${resolution}:flags=lanczos`);
   }
 
   ffmpegArgs = ffmpegArgs.concat(encoderArgs);
-  ffmpegArgs.push('-c:a', 'copy');
+  ffmpegArgs = ffmpegArgs.concat(audioArgs);
   ffmpegArgs.push(outputFile);
 
   event.sender.send('terminal-message', `Starting encode: ${encoder} → ${format}`);
