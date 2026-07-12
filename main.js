@@ -209,27 +209,48 @@ const downloadUrls = {
  */
 function downloadFile(url, destPath, onProgress) {
   return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(destPath);
+    let file = null;
+    let settled = false;
+
+    /**
+     * Closes the write stream (if any was opened) and removes the partial
+     * destination file, then rejects. Safe to call more than once.
+     * @param {Error} err - Error to reject with
+     */
+    const fail = (err) => {
+      if (settled) return;
+      settled = true;
+      if (file) {
+        file.destroy();
+      }
+      fs.unlink(destPath, () => { }); // no-op callback; ignore ENOENT and any other error
+      reject(err);
+    };
 
     const doRequest = (urlToFetch, redirectCount = 0) => {
       if (redirectCount > 10) {
-        reject(new Error('Too many redirects'));
+        fail(new Error('Too many redirects'));
         return;
       }
 
       const urlObj = new URL(urlToFetch);
       const httpModule = urlObj.protocol === 'https:' ? https : require('http');
 
-      httpModule.get(urlToFetch, (response) => {
+      const request = httpModule.get(urlToFetch, (response) => {
         if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
           const redirectUrl = new URL(response.headers.location, urlToFetch).href;
           return doRequest(redirectUrl, redirectCount + 1);
         }
 
         if (response.statusCode !== 200) {
-          reject(new Error(`HTTP ${response.statusCode}`));
+          fail(new Error(`HTTP ${response.statusCode}`));
           return;
         }
+
+        // Only create the destination file once we know the response is a
+        // usable 200 — this avoids leaving a stale/empty file behind on
+        // redirects, non-200 statuses, or request errors.
+        file = fs.createWriteStream(destPath);
 
         const totalSize = parseInt(response.headers['content-length'], 10);
         let downloadedSize = 0;
@@ -259,21 +280,27 @@ function downloadFile(url, destPath, onProgress) {
           }
         });
 
+        response.on('error', (err) => {
+          fail(err);
+        });
+
         response.pipe(file);
 
         file.on('finish', () => {
+          if (settled) return;
+          settled = true;
           file.close();
           console.log(`[Download] Complete: ${downloadedSize} bytes`);
           resolve(destPath);
         });
 
         file.on('error', (err) => {
-          fs.unlink(destPath, () => { });
-          reject(err);
+          fail(err);
         });
-      }).on('error', (err) => {
-        fs.unlink(destPath, () => { });
-        reject(err);
+      });
+
+      request.on('error', (err) => {
+        fail(err);
       });
     };
 
@@ -303,6 +330,8 @@ ipcMain.handle('download-ytdlp', async (event) => {
       fs.chmodSync(destPath, '755');
     }
 
+    ytdlpPath = destPath;
+
     return { success: true, path: destPath };
   } catch (error) {
     return { success: false, error: error.message };
@@ -312,7 +341,7 @@ ipcMain.handle('download-ytdlp', async (event) => {
 /**
  * Downloads and extracts FFmpeg/FFprobe for the current platform
  * @param {Electron.IpcMainInvokeEvent} event - IPC event
- * @returns {Promise<{success: boolean, path?: string, error?: string}>}
+ * @returns {Promise<{success: boolean, path?: string, ffmpegPath?: string, ffprobePath?: string, error?: string}>}
  */
 ipcMain.handle('download-ffmpeg', async (event) => {
   const urls = downloadUrls[platform];
@@ -352,8 +381,16 @@ ipcMain.handle('download-ffmpeg', async (event) => {
       fs.chmodSync(path.join(binPath, 'ffmpeg'), '755');
       fs.chmodSync(path.join(binPath, 'ffprobe'), '755');
 
+      ffmpegPath = path.join(binPath, 'ffmpeg');
+      ffprobePath = path.join(binPath, 'ffprobe');
+
       event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: 100, message: 'Done!' });
-      return { success: true, path: binPath };
+      return {
+        success: true,
+        path: ffmpegPath,
+        ffmpegPath: ffmpegPath,
+        ffprobePath: ffprobePath
+      };
 
     } else if (platform === 'win32') {
       event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: 0, message: 'Downloading FFmpeg (large file)...' });
@@ -388,8 +425,16 @@ ipcMain.handle('download-ffmpeg', async (event) => {
       fs.unlinkSync(ffmpegZip);
       fs.rmSync(extractDir, { recursive: true, force: true });
 
+      ffmpegPath = path.join(binPath, 'ffmpeg.exe');
+      ffprobePath = path.join(binPath, 'ffprobe.exe');
+
       event.sender.send('download-binary-progress', { name: 'ffmpeg', progress: 100, message: 'Done!' });
-      return { success: true, path: binPath };
+      return {
+        success: true,
+        path: ffmpegPath,
+        ffmpegPath: ffmpegPath,
+        ffprobePath: ffprobePath
+      };
 
     } else {
       return {
@@ -803,3 +848,6 @@ ipcMain.handle('extract-frames', async (event, { inputPath, outputPath, format, 
     });
   });
 });
+
+// Exposed for unit testing only; unused by the Electron runtime itself.
+module.exports = { downloadFile };
