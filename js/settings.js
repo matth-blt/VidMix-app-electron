@@ -3,6 +3,9 @@
  * Handles app settings and binary downloads
  */
 
+import './utils.js';
+const { escapeHtml } = globalThis.__utils;
+
 export const template = `
   <div class="animate-fadeIn">
     <div class="tool-header">
@@ -110,7 +113,7 @@ export async function init(log) {
         statusEl.style.color = 'var(--success)';
         log('FFmpeg downloaded!', 'success');
       } else {
-        statusEl.innerHTML = result.error + '<br><a href="#" style="color: var(--accent-primary);">Click to download manually</a>';
+        statusEl.innerHTML = escapeHtml(result.error) + '<br><a href="#" style="color: var(--accent-primary);">Click to download manually</a>';
         statusEl.style.color = 'var(--warning)';
         log(result.error, 'warning');
       }

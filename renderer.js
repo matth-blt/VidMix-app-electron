@@ -302,6 +302,7 @@ async function startQueue() {
   for (let index = 0; index < pending.length; index++) {
     const item = pending[index];
 
+    if (!state.queue.includes(item)) continue; // removed while waiting
     item.status = 'Processing';
     renderQueue();
     updateProgress((index / pending.length) * 100, `Processing: ${item.title}`);
